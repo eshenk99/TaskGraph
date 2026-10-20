@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light" />
-  <title>TaskGraph — Visual Task &amp; Dependency Studio</title>
+  <title>TaskGraph 3 — Project Studio</title>
   <style>
     :root {
       --bg:#f6f7fb; --surface:#fff; --ink:#1d2940; --muted:#718097;
@@ -305,6 +305,127 @@
       body[data-layout="top"] .nav-bottom {margin-left:auto;}
       .graph-tips {display:none;}
     }
+
+/* TASKGRAPH 3.0 - full application theming and distinct workspaces */
+body[data-theme="ocean"] {--bg:#edf6f8;--surface:#ffffff;--ink:#183c51;--muted:#608699;--nav:#153b58;--nav-sub:#bcdbeb;--purple:#0d8aaa;--purple-light:#e0f4f9;--border:#d4e6ed;--graph-line:#6da6b8;}
+body[data-theme="sunrise"] {--bg:#fff6eb;--surface:#fffcf8;--ink:#513646;--muted:#896f79;--nav:#603e50;--nav-sub:#f3d6d5;--purple:#cf7656;--purple-light:#fce9da;--border:#ecdccf;--graph-line:#bba19f;}
+body[data-theme="lavender"] {--bg:#f7f2fc;--surface:#fffaff;--ink:#382e4f;--muted:#85779a;--nav:#35244e;--nav-sub:#e2d3f0;--purple:#9164c7;--purple-light:#f0e4fa;--border:#e6daef;--graph-line:#b5a1cc;}
+body[data-theme="rose"] {--bg:#fff0f4;--surface:#fffafd;--ink:#542738;--muted:#996c7d;--nav:#542738;--nav-sub:#ffd1df;--purple:#cd6687;--purple-light:#fbe1ec;--border:#f0d7df;--graph-line:#d8a6b7;}
+body[data-theme="ember"] {--bg:#191719;--surface:#282327;--ink:#ffe7d4;--muted:#c5a898;--nav:#241d21;--nav-sub:#dbc1b4;--purple:#f4a261;--purple-light:#49362e;--border:#4e3b37;--graph-line:#9e7b67;}
+body[data-theme="slate"] {--bg:#edf1f5;--surface:#ffffff;--ink:#253446;--muted:#718698;--nav:#253446;--nav-sub:#bbcbd8;--purple:#447e9c;--purple-light:#dcecf5;--border:#d8e1e9;--graph-line:#96abb9;}
+body[data-theme="parchment"] {--bg:#f7f0df;--surface:#fffbef;--ink:#574a35;--muted:#97846a;--nav:#594d37;--nav-sub:#e3d6be;--purple:#ad8955;--purple-light:#efe2c7;--border:#e6dac5;--graph-line:#b4a07f;}
+body[data-theme="forest"] {--purple:#427c64;--purple-light:#e1eee5;}
+body[data-theme="midnight"] {--graph-line:#6c7e9e;}
+body[data-theme="studio"] {--graph-line:#9aa9bf;}
+body[data-theme] .metric, body[data-theme] .work-panel, body[data-theme] .task-card,body[data-theme] .drawer,body[data-theme] .bulk-modal,body[data-theme] .studio-modal,body[data-theme] .collab-modal, body[data-theme] .appearance-panel,body[data-theme] .graph-context{background:var(--surface);color:var(--ink);border-color:var(--border);}
+body[data-theme] .board-column{background:color-mix(in srgb,var(--bg) 84%,var(--surface));border-color:var(--border);}
+body[data-theme] .board-column.drag-over{background:var(--purple-light);border-color:var(--purple);}
+body[data-theme] .column-empty,body[data-theme] .dep-section,body[data-theme] .bulk-preview,body[data-theme] .collab-section,body[data-theme] .invite-code,body[data-theme] .graph-legend,body[data-theme] .graph-guide,body[data-theme] .graph-controls {background:var(--bg);color:var(--muted);border-color:var(--border);}
+body[data-theme] .field input,body[data-theme] .field textarea,body[data-theme] .field select,body[data-theme] .bulk-body textarea,body[data-theme] .search,body[data-theme] .column-search,body[data-theme] .column-filters select,body[data-theme] .studio-body input:not([type="color"]),body[data-theme] .studio-body select,body[data-theme] .studio-body textarea,body[data-theme] .btn:not(.primary),body[data-theme] .appearance-control{background:var(--surface);border-color:var(--border);color:var(--ink);}
+body[data-theme] .field label,body[data-theme] .field-label,body[data-theme] .task-card h3,body[data-theme] .dep-choice strong{color:var(--ink);}
+body[data-theme] .subdetail,body[data-theme] .assignee,body[data-theme] .milestone,body[data-theme] .panel-hint,body[data-theme] .metric-label{color:var(--muted);}
+body[data-theme] .graph-area {background-color:var(--bg);background-image:radial-gradient(var(--border) .85px,transparent .85px);}
+body[data-theme] .graph-area.orb-field {background-image:radial-gradient(circle at 30% 35%,color-mix(in srgb,var(--purple) 12%,transparent),transparent 45%),radial-gradient(circle at 80% 60%,#5d94bb18,transparent 35%),radial-gradient(var(--border) .6px,transparent .6px);background-size:100% 100%,100% 100%,30px 30px;}
+body[data-theme] .graph-area.skill-tree {background-image:linear-gradient(135deg,color-mix(in srgb,var(--purple) 9%,transparent),transparent 40%),repeating-linear-gradient(0deg,transparent,transparent 31px,color-mix(in srgb,var(--border) 45%,transparent) 32px);}
+body[data-theme="midnight"] .graph-area,body[data-theme="ember"] .graph-area {background-color:var(--bg)}
+body[data-theme="ember"] .nav-btn.active{background:#533b30;}body[data-theme="ember"] .sidebar-tip{background:#30262a;}
+body[data-theme] .zero-state h2{color:var(--ink)}
+body[data-theme] .graph-empty .zero-state {background:var(--surface)}
+body[data-theme] .btn.primary {background:var(--purple);color:white;}
+/* Graph substeps are actually clickable targets inside the parent card */
+.graph-subtask{cursor:pointer;}.graph-subtask:hover{opacity:.74;}
+.milestone-node .node-body {stroke-dasharray:4 3;}
+/* Board filtering and safe trash */
+.board {grid-template-columns:repeat(var(--board-cols,4),minmax(230px,1fr));overflow-x:auto;}
+.column-filters{display:grid;grid-template-columns:minmax(0,1fr) 1fr;gap:6px;margin:11px 0;}
+.column-filters .column-search{grid-column:1/-1;min-width:0;}
+.column-search,.column-filters select {min-width:0;width:100%;font-size:11px;border:1px solid var(--border);border-radius:7px;padding:8px;background:var(--surface);color:var(--ink);}
+.board-column {min-width:230px;}
+.board-trash {margin:0 18px 18px;padding:21px;text-align:center;border:2px dashed var(--border);border-radius:12px;color:var(--muted);font-size:12px;font-weight:650;transition:.2s;}
+.board-trash.drag-over {background:var(--purple-light);border-color:var(--purple);color:var(--purple);transform:scale(1.005);}
+.status-dot{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block;}
+.subtask-link{display:flex;align-items:center;gap:9px;width:100%;padding:9px 10px;margin:4px 0;text-align:left;border:1px solid var(--border);border-radius:8px;color:var(--ink);background:var(--surface)}
+.subtask-link small{margin-left:auto;color:var(--muted)}
+/* Workspace configuration and milestone editor */
+.studio-modal{position:fixed;z-index:25;top:50%;left:50%;transform:translate(-50%,-50%);width:min(800px,calc(100vw - 22px));max-height:86vh;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 28px 80px #10162955;display:none;flex-direction:column;overflow:hidden;}
+.studio-modal.visible{display:flex;}
+.studio-head{padding:21px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);font-size:18px;}
+.studio-body{overflow:auto;padding:22px 24px;min-height:100px;}
+.studio-foot{padding:17px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:9px;}
+.studio-body .small-note{color:var(--muted);font-size:12px;line-height:1.5;}
+.status-editor-row{display:flex;gap:7px;align-items:center;margin:9px 0;}
+.status-editor-row input[type="color"]{width:33px;height:33px;padding:1px;flex:none;border:1px solid var(--border);border-radius:6px;}
+.status-editor-row input[type="text"]{min-width:65px;flex:1;}
+.status-editor-row select{width:132px;flex:none;}
+.status-editor-row input[type="text"],.status-editor-row select{padding:9px;border:1px solid var(--border);border-radius:7px;font-size:12px;}
+.btn.small {font-size:11px;}
+.trash-row{display:flex;align-items:center;gap:8px;padding:13px 0;border-bottom:1px solid var(--border);}
+.trash-row span{flex:1;min-width:0;overflow-wrap:anywhere;}
+.btn.danger,.danger{color:#c14f61!important;}
+/* Project progress dashboard */
+.progress-dashboard{padding:25px;display:grid;gap:18px;}
+.progress-hero{background:linear-gradient(125deg,var(--nav),color-mix(in srgb,var(--nav) 64%,var(--purple)));border-radius:18px;color:#fff;padding:30px 34px;display:flex;align-items:center;justify-content:space-between;}
+.progress-hero .eyebrow{color:#cbd7eb;}.progress-hero p{color:#d9dfe9;margin:7px 0 0;font-size:12px;}
+.progress-value{font-size:55px;font-weight:800;letter-spacing:-3px;line-height:1.1;}.progress-value small{font-size:24px;}
+.progress-ring{width:105px;height:105px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#9fdcbf calc(var(--percentage)*1%),#ffffff2b 0);}
+.progress-ring span{background:var(--nav);height:77px;width:77px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:18px;}
+.progress-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;}
+.progress-stat{border:1px solid var(--border);border-radius:12px;padding:16px 20px;font-size:28px;font-weight:800;background:var(--bg);}
+.progress-stat small{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-top:5px;}
+.progress-sections{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+.progress-sections>div{border:1px solid var(--border);padding:22px;border-radius:14px;min-width:0;}
+.progress-sections h3{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;margin:0 0 18px;}
+.progress-milestone{display:flex;align-items:center;gap:13px;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.progress-milestone strong{display:block;font-size:12px;}
+.progress-milestone small{display:block;font-size:11px;color:var(--muted);margin:7px 0;}
+.milestone-emblem{background:color-mix(in srgb,var(--emblem) 15%,transparent);border:2px solid var(--emblem);color:var(--emblem);width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:25px;flex:none;}
+.progress-bar{height:7px;overflow:hidden;border-radius:20px;background:var(--border);}
+.progress-bar i{display:block;height:100%;background:var(--purple);border-radius:20px;}
+.workload-row{display:grid;grid-template-columns:1fr auto;gap:7px 14px;padding:10px 0;font-size:12px;}
+.workload-row .progress-bar{grid-column:1/-1;}
+.next-task{border:1px solid var(--border);background:var(--bg);color:var(--ink);border-radius:9px;padding:11px 13px;display:flex;justify-content:space-between;width:100%;margin:6px 0;text-align:left;}
+/* Layout choices intentionally change composition, density and navigation, not only the nav position */
+body[data-layout="top"] .metrics{grid-template-columns:repeat(4,minmax(0,1fr));}
+body[data-layout="top"] .board{gap:10px;}
+body[data-layout="top"] .board-column{min-height:62vh;}
+body[data-layout="top"] .page{max-width:none;}
+body[data-layout="top"] .graph-area{height:78vh;}
+body[data-layout="focus"] .sidebar{width:76px;padding:18px 10px;}
+body[data-layout="focus"] .brand{padding:0 6px 26px;}
+body[data-layout="focus"] .brand-word,body[data-layout="focus"] .nav-label,body[data-layout="focus"] .nav-btn span,body[data-layout="focus"] .sidebar-tip{display:none;}
+body[data-layout="focus"] .nav-btn{justify-content:center;padding:15px 6px;}
+body[data-layout="focus"] .page{max-width:1280px;padding:24px clamp(18px,4vw,64px);}
+body[data-layout="focus"] .metrics{grid-template-columns:repeat(4,1fr);gap:8px;}
+body[data-layout="focus"] .metric{padding:12px 14px;}
+body[data-layout="focus"] .board{gap:18px;}
+body[data-layout="focus"] .board-column{min-height:67vh;}
+body[data-layout="focus"] .graph-area{height:80vh;}
+body[data-layout="command"] .app{flex-direction:column;}
+body[data-layout="command"] .sidebar{width:100%;height:auto;min-height:0;padding:12px 32px;display:flex;flex-direction:row;align-items:center;gap:13px;position:sticky;top:0;z-index:19;}
+body[data-layout="command"] .brand{margin-right:20px;padding:0;}
+body[data-layout="command"] .sidebar-tip,body[data-layout="command"] .nav-label{display:none;}
+body[data-layout="command"] .nav-btn{width:auto;padding:9px 15px;margin:0;white-space:nowrap;}
+body[data-layout="command"] .nav-bottom{margin-left:auto;margin-top:0;display:flex;flex-direction:row;border:0;padding:0;gap:5px;}
+body[data-layout="command"] .nav-bottom .nav-btn{padding:10px;}
+body[data-layout="command"] .nav-bottom .nav-btn span{display:none;}
+body[data-layout="command"] .page{max-width:none;padding:18px 34px;display:grid;grid-template-columns:200px minmax(0,1fr);grid-template-areas:'header header' 'stats panel';gap:15px;}
+body[data-layout="command"] .topbar{grid-area:header;margin-bottom:0;}
+body[data-layout="command"] .metrics{grid-area:stats;display:flex;flex-direction:column;margin-bottom:0;gap:11px;}
+body[data-layout="command"] .metric{flex:1;min-height:88px;padding:12px 14px;}
+body[data-layout="command"] #boardView,body[data-layout="command"] #graphView,body[data-layout="command"] #progressView{grid-area:panel;}
+body[data-layout="command"] .graph-area{height:75vh;}
+body[data-layout="command"] .board{gap:8px;padding:12px;}
+body[data-layout="command"] .board-column{min-height:65vh;}
+body[data-layout="command"] .task-card{border-left:3px solid var(--card-accent);border-radius:6px;}
+@media(max-width:850px){.progress-sections{grid-template-columns:1fr;}.progress-stat-grid{grid-template-columns:repeat(2,1fr);}body[data-layout="command"] .page{display:block;padding:18px;}body[data-layout="command"] .metrics{display:grid;grid-template-columns:repeat(2,1fr);margin-bottom:15px;}body[data-layout="command"] .sidebar{overflow-x:auto;padding:10px;}body[data-layout="command"] .brand-word{display:none;}}
+@media(max-width:560px){.status-editor-row{flex-wrap:wrap;}.status-editor-row input[type="text"]{flex:1 1 120px;}.status-editor-row select{flex:1;}.progress-dashboard{padding:10px;}.progress-hero{padding:16px;}.progress-stat-grid{gap:8px;}.progress-stat{padding:11px;}.progress-ring{width:78px;height:78px}.progress-ring span{width:57px;height:57px}.board{display:flex;overflow-x:auto}.board-column{width:280px;flex:none;}}
+
+    .metrics {grid-template-columns:repeat(5,minmax(0,1fr));}
+    .top-actions{flex-wrap:wrap;justify-content:flex-end;}
+    .graph-legend{z-index:2;}
+    body[data-layout="top"] .metrics, body[data-layout="focus"] .metrics {grid-template-columns:repeat(5,minmax(0,1fr));}
+    @media(max-width:1000px){.metrics,body[data-layout="top"] .metrics,body[data-layout="focus"] .metrics{grid-template-columns:repeat(3,1fr);}}
+    @media(max-width:650px){.metrics,body[data-layout="top"] .metrics,body[data-layout="focus"] .metrics{grid-template-columns:repeat(2,1fr);}}
   </style>
 </head>
 <body>
@@ -314,6 +435,7 @@
     <div class="nav-label">WORKSPACE</div>
     <button class="nav-btn active" id="navBoard" data-view="board" title="Task board"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="7" height="16" rx="2"/><rect x="14" y="4" width="7" height="10" rx="2"/></svg><span>Task board</span></button>
     <button class="nav-btn" id="navGraph" data-view="graph" title="Dependency map"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2" y="9" width="6" height="6" rx="1"/><rect x="16" y="3" width="6" height="6" rx="1"/><rect x="16" y="15" width="6" height="6" rx="1"/><path d="M8 12h4l4-6M12 12l4 6"/></svg><span>Dependency map</span></button>
+    <button class="nav-btn" id="navProgress" data-view="progress" title="Project progress"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9m5 10V4m5 15v-7m5 7V6"/></svg><span>Project progress</span></button>
     <div class="nav-bottom">
       <div class="nav-label">PROJECT DATA</div>
       <button class="nav-btn" id="exportBtn" title="Export JSON"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v4h16v-4"/></svg><span>Export backup</span></button>
@@ -327,26 +449,42 @@
   <main class="content"><div class="page">
     <div class="topbar">
       <div><div class="eyebrow">PROJECT WORKSPACE</div><h1 id="pageTitle">Task board</h1><div class="subtitle" id="pageSubtitle">Manage tasks, owners, milestones, and progress.</div></div>
-      <div class="top-actions"><span class="cloud-pill" id="cloudPill">Local mode</span><button class="btn" id="appearanceBtn" aria-expanded="false" aria-controls="appearancePanel">Appearance</button><button class="btn" id="collabBtn">Collaborate</button><button class="btn" id="otherViewBtn">View dependencies</button><button class="btn" id="quickAddBtn">Quick add / bulk paste</button><button class="btn primary" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> New task</button></div>
+      <div class="top-actions"><span class="cloud-pill" id="cloudPill">Local mode</span><button class="btn" id="appearanceBtn" aria-expanded="false" aria-controls="appearancePanel">Appearance</button><button class="btn" id="collabBtn">Collaborate</button><button class="btn" id="otherViewBtn">View dependencies</button><button class="btn" id="quickAddBtn">Quick add / bulk paste</button><button class="btn" id="newMilestoneBtn">＋ Milestone</button><button class="btn primary" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> New task</button></div>
       <div class="appearance-panel hidden" id="appearancePanel" role="region" aria-label="Appearance settings">
-        <div class="group"><h3>Color theme</h3><div class="appearance-options">
-          <button class="appearance-option" data-theme-choice="studio" aria-pressed="true"><span class="theme-swatches"><i style="background:#f6f7fb"></i><i style="background:#14203a"></i><i style="background:#6058c9"></i></span>Studio</button>
-          <button class="appearance-option" data-theme-choice="midnight" aria-pressed="false"><span class="theme-swatches"><i style="background:#0b1220"></i><i style="background:#253453"></i><i style="background:#9b9cf8"></i></span>Midnight</button>
-          <button class="appearance-option" data-theme-choice="forest" aria-pressed="false"><span class="theme-swatches"><i style="background:#f2f4ee"></i><i style="background:#213c32"></i><i style="background:#427c64"></i></span>Forest</button>
+        <div class="group"><h3>Color theme</h3><div class="appearance-options"><button class="appearance-option" data-theme-choice="studio" aria-pressed="false"><span class="theme-swatches"><i style="background:#f6f7fb"></i><i style="background:#14203a"></i><i style="background:#6058c9"></i></span>Studio</button>
+<button class="appearance-option" data-theme-choice="midnight" aria-pressed="false"><span class="theme-swatches"><i style="background:#0b1220"></i><i style="background:#182740"></i><i style="background:#9b9cf8"></i></span>Midnight</button>
+<button class="appearance-option" data-theme-choice="forest" aria-pressed="false"><span class="theme-swatches"><i style="background:#f2f4ee"></i><i style="background:#213c32"></i><i style="background:#427c64"></i></span>Forest</button>
+<button class="appearance-option" data-theme-choice="ocean" aria-pressed="false"><span class="theme-swatches"><i style="background:#eaf4f7"></i><i style="background:#153b58"></i><i style="background:#0d8aaa"></i></span>Ocean</button>
+<button class="appearance-option" data-theme-choice="sunrise" aria-pressed="false"><span class="theme-swatches"><i style="background:#fff7ed"></i><i style="background:#603e50"></i><i style="background:#df8154"></i></span>Sunrise</button>
+<button class="appearance-option" data-theme-choice="lavender" aria-pressed="false"><span class="theme-swatches"><i style="background:#f7f2fc"></i><i style="background:#35244e"></i><i style="background:#9164c7"></i></span>Lavender</button>
+<button class="appearance-option" data-theme-choice="rose" aria-pressed="false"><span class="theme-swatches"><i style="background:#fff0f4"></i><i style="background:#542738"></i><i style="background:#cd6687"></i></span>Rose</button>
+<button class="appearance-option" data-theme-choice="ember" aria-pressed="false"><span class="theme-swatches"><i style="background:#1b171a"></i><i style="background:#352329"></i><i style="background:#f4a261"></i></span>Ember</button>
+<button class="appearance-option" data-theme-choice="slate" aria-pressed="false"><span class="theme-swatches"><i style="background:#edf1f5"></i><i style="background:#253446"></i><i style="background:#447e9c"></i></span>Slate</button>
+<button class="appearance-option" data-theme-choice="parchment" aria-pressed="false"><span class="theme-swatches"><i style="background:#f7f0df"></i><i style="background:#594d37"></i><i style="background:#ad8955"></i></span>Parchment</button></div></div>
+        <div class="group"><h3>Workspace layout</h3><div class="appearance-options">
+          <button class="appearance-option" data-layout-choice="sidebar">Studio</button>
+          <button class="appearance-option" data-layout-choice="top">Panorama</button>
+          <button class="appearance-option" data-layout-choice="focus">Focus</button>
+          <button class="appearance-option" data-layout-choice="command">Command</button>
         </div></div>
-        <div class="group"><h3>Workspace layout</h3><div class="appearance-options" style="grid-template-columns:1fr 1fr"><button class="appearance-option" data-layout-choice="sidebar" aria-pressed="true">Sidebar</button><button class="appearance-option" data-layout-choice="top" aria-pressed="false">Top navigation</button></div></div>
-        <div class="group"><h3>Diagram style</h3><div class="appearance-options" style="grid-template-columns:1fr 1fr"><button class="appearance-option" data-skin-choice="skill" aria-pressed="true">Skill tree</button><button class="appearance-option" data-skin-choice="flow" aria-pressed="false">Flow diagram</button></div></div>
+        <div class="group"><h3>Diagram style</h3><div class="appearance-options">
+          <button class="appearance-option" data-skin-choice="flow">Flow diagram</button>
+          <button class="appearance-option" data-skin-choice="skill">Skill tree</button>
+          <button class="appearance-option" data-skin-choice="orbs">Glass orbs</button>
+        </div></div>
+        <div class="group"><button class="btn" id="configureStatuses" style="width:100%">Configure task statuses</button></div>
       </div>
     </div>
     <section class="metrics" aria-label="Project summary">
       <div class="metric"><div><div class="metric-label">Ready to start</div><div class="metric-number" id="readyMetric">0</div></div><div class="metric-dot ready"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 5 9 7-9 7z"/></svg></div></div>
+      <div class="metric"><div><div class="metric-label">In progress</div><div class="metric-number" id="activeMetric">0</div></div><div class="metric-dot ready">◷</div></div>
       <div class="metric"><div><div class="metric-label">Blocked by tasks</div><div class="metric-number" id="blockedMetric">0</div></div><div class="metric-dot blocked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></svg></div></div>
       <div class="metric"><div><div class="metric-label">On hold</div><div class="metric-number" id="holdMetric">0</div></div><div class="metric-dot hold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5v14M15 5v14"/></svg></div></div>
       <div class="metric"><div><div class="metric-label">Completed</div><div class="metric-number" id="doneMetric">0</div></div><div class="metric-dot done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m4 12 5 5L20 6"/></svg></div></div>
     </section>
     <section class="work-panel" id="boardView">
-      <div class="panel-toolbar"><div><div class="panel-title">Task pipeline</div><div class="panel-hint">Drag cards between columns or open a task to update its status.</div></div><div class="panel-tools"><input class="search" id="taskSearch" type="search" placeholder="Search tasks..." aria-label="Search tasks" /></div></div>
-      <div id="boardContent"></div>
+      <div class="panel-toolbar"><div><div class="panel-title">Task pipeline</div><div class="panel-hint">Drag cards between columns or open a task to update its status.</div></div><div class="panel-tools"><input class="search" id="taskSearch" type="search" placeholder="Search all tasks..." aria-label="Search tasks" /><button class="btn small" id="showTrashBtn">Trash <span id="trashCount">0</span></button></div></div>
+      <div id="boardContent"></div><div class="board-trash" id="trashDrop" aria-label="Drop tasks here to move to trash">♲ &nbsp; Drag a task here to move it to Trash</div>
     </section>
     <section class="work-panel hidden" id="graphView">
       <div class="panel-toolbar"><div><div class="panel-title">Task dependency map</div><div class="panel-hint">Arrows point from a prerequisite to the task it unlocks. Tasks with no prerequisites appear first.</div></div><div class="panel-tools"><label for="graphDirection" style="font-size:11px;color:var(--muted)">Direction</label><select class="appearance-control" id="graphDirection" aria-label="Graph direction"><option value="vertical">Top to bottom</option><option value="horizontal">Left to right</option></select><button class="btn small" id="autoLayoutBtn" title="Remove manual positions for this direction">Auto arrange</button><button class="btn small" id="focusStartBtn">Starting tasks</button><button class="btn small" id="fitBtnTop">Fit all tasks</button></div></div>
@@ -358,6 +496,10 @@
         <div class="graph-tips">Click a task to edit · Right-click a connection to remove it</div><div class="graph-context hidden" id="graphContext" role="menu"></div>
         <div class="graph-empty hidden" id="graphEmpty"></div>
       </div>
+    </section>
+    <section class="work-panel hidden" id="progressView">
+      <div class="panel-toolbar"><div><div class="panel-title">Project overview</div><div class="panel-hint">Completion, milestones, team workload and next available work.</div></div></div>
+      <div class="progress-dashboard" id="progressContent"></div>
     </section>
   </div></main>
 </div>
@@ -372,7 +514,10 @@
         <div class="field"><label for="ownerInput">Assigned to</label><input id="ownerInput" maxlength="90" placeholder="Person's name" /></div>
         <div class="field"><label for="milestoneInput">Milestone</label><input id="milestoneInput" maxlength="100" placeholder="e.g. Prototype" /></div>
       </div>
-      <div class="field"><label for="statusInput">Task status</label><select id="statusInput"><option value="todo">To do</option><option value="on-hold">On hold</option><option value="completed">Completed</option></select><small>“Blocked” is calculated automatically when prerequisite tasks are incomplete.</small></div>
+      <div class="field"><label for="statusInput">Task status</label><select id="statusInput"></select><small>Prerequisites determine whether a task is ready or blocked.</small></div>
+      <div class="field"><label for="parentInput">Parent task / subtask of</label><select id="parentInput"><option value="">None — top-level task</option></select></div>
+      <div class="field"><label for="milestoneSelect">Tracked milestone</label><select id="milestoneSelect"><option value="">No checkpoint</option></select></div>
+      <div class="subtask-editor hidden" id="subtaskEditor"><div class="field-label">Subtasks</div><div id="subtaskList"></div><div class="field" style="display:flex;gap:7px"><input id="quickSubtaskTitle" placeholder="Add a small step..." maxlength="140" /><button type="button" class="btn" id="addSubtaskBtn">Add</button></div></div>
       <div class="dep-section"><div class="field-label">Depends on these tasks</div><div style="font-size:11px;color:#8190a5;line-height:1.6;">Select every task that must finish before this one can start. You can select several.</div><div class="dep-list" id="dependencyOptions"></div></div>
       <div class="error hidden" id="formError" role="alert"></div>
     </div>
@@ -393,6 +538,11 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
   <div class="bulk-footer"><span class="small-note">Checks unknown dependencies and circular relationships before adding tasks.</span><div style="display:flex;gap:8px"><button class="btn" id="cancelBulk">Cancel</button><button class="btn primary" id="submitBulk" disabled>Add tasks</button></div></div>
 </section>
 
+<section class="studio-modal" id="studioModal" role="dialog" aria-modal="true" aria-label="Project settings">
+  <div class="studio-head"><strong id="studioModalTitle">Project settings</strong><button class="close" id="studioClose" type="button">×</button></div>
+  <div id="studioModalBody" class="studio-body"></div>
+  <div class="studio-foot"><button class="btn" id="studioCancel" type="button">Cancel</button><button class="btn primary" id="studioSave" type="button">Save</button></div>
+</section>
 <section class="collab-modal" id="collabModal" role="dialog" aria-modal="true" aria-labelledby="collabTitle" aria-hidden="true">
   <div class="collab-head"><strong id="collabTitle">Team collaboration</strong><button class="close" id="closeCollab" aria-label="Close collaboration settings">×</button></div>
   <div class="collab-body">
@@ -440,8 +590,35 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
   const CLOUD_CONFIG_KEY = 'taskgraph_shared_config_v1';
   const CLOUD_ACTIVE_KEY = 'taskgraph_shared_workspace_v1';
   const APPEARANCE_KEY = 'taskgraph_appearance_v2';
-  const STATUSES = ['todo', 'on-hold', 'completed'];
-  const STATUS_LABELS = {todo:'To do','on-hold':'On hold',completed:'Completed'};
+  const SETTINGS_KEY='taskgraph_project_settings_v3';
+  const DEFAULT_STATUSES=[
+    {id:'todo',label:'To do',color:'#6478c9',behavior:'queued'},
+    {id:'in-progress',label:'In progress',color:'#367db6',behavior:'active'},
+    {id:'on-hold',label:'On hold',color:'#cc9550',behavior:'hold'},
+    {id:'completed',label:'Completed',color:'#31996f',behavior:'done'}
+  ];
+  const defaultSettings=()=>({statuses:DEFAULT_STATUSES.map(s=>({...s})),milestones:[]});
+  let projectSettings=defaultSettings();
+  const STATUSES=['todo','in-progress','on-hold','completed'];
+  const STATUS_LABELS={};
+  function syncStatuses(){STATUSES.splice(0,STATUSES.length,...projectSettings.statuses.map(s=>s.id));for(const k in STATUS_LABELS)delete STATUS_LABELS[k];projectSettings.statuses.forEach(s=>STATUS_LABELS[s.id]=s.label);}
+  function statusDef(id){return projectSettings.statuses.find(s=>s.id===id)||projectSettings.statuses[0];}
+  function defaultStatus(){return projectSettings.statuses.find(s=>s.behavior==='queued')?.id || projectSettings.statuses[0].id;}
+  function activeTasks(){return tasks.filter(t=>!t.trashed);}
+  function parentsOnly(){return activeTasks().filter(t=>!t.parentId||!activeTasks().some(p=>p.id===t.parentId));}
+  function childrenOf(id){return activeTasks().filter(t=>t.parentId===id);}
+  function completion(t){return statusDef(t.status)?.behavior==='done';}
+  function sanitizeSettings(s){
+    if(!s||typeof s!=='object')return defaultSettings();
+    const states=Array.isArray(s.statuses)?s.statuses:[];
+    const statuses=states.slice(0,14).filter(v=>v&&typeof v.id==='string'&&/^[a-z0-9-]{1,40}$/.test(v.id)&&typeof v.label==='string'&&v.label.trim()&&/^#[0-9a-f]{6}$/i.test(v.color)&&['queued','active','hold','done'].includes(v.behavior)).map(v=>({id:v.id,label:v.label.trim().slice(0,32),color:v.color,behavior:v.behavior}));
+    if(!statuses.length||!statuses.some(s=>s.behavior==='done')||new Set(statuses.map(s=>s.id)).size!==statuses.length)return defaultSettings();
+    const milestones=(Array.isArray(s.milestones)?s.milestones:[]).slice(0,200).filter(m=>m&&typeof m.id==='string'&&typeof m.title==='string'&&m.title.trim()).map(m=>({id:m.id,title:m.title.slice(0,100),description:String(m.description||'').slice(0,2000),color:/^#[0-9a-f]{6}$/i.test(m.color)?m.color:'#b58df0',graphPositions:safeGraphPositions(m.graphPositions)}));
+    return {statuses,milestones};
+  }
+  function localSettings(){try{return sanitizeSettings(JSON.parse(localStorage.getItem(SETTINGS_KEY)||'null'));}catch(e){return defaultSettings();}}
+  function setSettings(s){projectSettings=sanitizeSettings(s);syncStatuses();updateStatusUi();}
+
   const el = id => document.getElementById(id);
   const html = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const svgEscape = html;
@@ -466,18 +643,19 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
     return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `task-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   }
   function load() {
+    setSettings(localSettings());
     try { const raw = localStorage.getItem(STORE_KEY); if(raw) tasks = validate(JSON.parse(raw)); }
     catch(e) { console.warn('Could not load saved data:',e); tasks=[]; }
   }
   function save() {
     if (!cloudWorkspace) {
-      try { localStorage.setItem(STORE_KEY, JSON.stringify(tasks)); }
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(tasks));localStorage.setItem(SETTINGS_KEY,JSON.stringify(projectSettings)); }
       catch(e) { toast('Local saving unavailable — export a backup to keep changes.'); }
       return;
     }
     // One atomic, version-checked server write per queued state. If another user
     // writes first, the server rejects ours instead of silently losing their work.
-    cloudQueuedDraft = JSON.parse(JSON.stringify(tasks));
+    cloudQueuedDraft = {tasks:JSON.parse(JSON.stringify(tasks)),settings:JSON.parse(JSON.stringify(projectSettings))};
     if(!cloudWriteBusy) flushCloudWrites();
   }
   async function flushCloudWrites(){
@@ -488,8 +666,8 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
       while(cloudQueuedDraft && cloudWorkspace?.id === working){
         const draft=cloudQueuedDraft;
         cloudQueuedDraft=null;
-        const {data,error}=await cloudDb.rpc('taskgraph_write_tasks',{
-          p_workspace_id:working,p_expected_revision:cloudRevision,p_tasks:draft
+        const {data,error}=await cloudDb.rpc('taskgraph_write_project',{
+          p_workspace_id:working,p_expected_revision:cloudRevision,p_tasks:draft.tasks,p_settings:draft.settings
         });
         if(error)throw error;
         cloudRevision=Number(data);
@@ -497,7 +675,7 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
       }
     }catch(error){
       cloudQueuedDraft=null;
-      const draft=JSON.stringify(tasks);
+      const draft=JSON.stringify({tasks,settings:projectSettings});
       try{localStorage.setItem('taskgraph_unsaved_shared_draft_v1',draft);}catch(e){}
       toast('Shared save failed. Refreshing server data; an unsaved draft was stored in this browser.');
       setCloudMessage('Save failed: '+error.message+'\nAn unsaved draft was kept in this browser. Export your project before further edits.',true);
@@ -511,19 +689,17 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
       if(cloudQueuedDraft && cloudWorkspace?.id===working) flushCloudWrites();
     }
   }
-  function getTask(id) { return tasks.find(t => t.id === id); }
-  function prerequisitesDone(task) { return task.dependencies.every(id => getTask(id)?.status === 'completed'); }
+  function getTask(id) { return tasks.find(t=>t.id===id); }
+  function prerequisitesDone(task) { return task.dependencies.every(id=>{const dep=getTask(id);return dep&&!dep.trashed&&completion(dep);}); }
   function taskState(task) {
-    if(task.status === 'completed') return 'done';
-    if(task.status === 'on-hold') return 'hold';
-    return prerequisitesDone(task) ? 'ready' : 'blocked';
+    const b=statusDef(task.status)?.behavior;
+    if(b==='done')return 'done';
+    if(b==='hold')return 'hold';
+    if(b==='active')return 'active';
+    return prerequisitesDone(task)?'ready':'blocked';
   }
-  function taskStateLabel(task) { return {ready:'Ready', blocked:'Blocked', hold:'On hold',done:'Completed'}[taskState(task)]; }
-  function stateCounts() {
-    const counts = {ready:0,blocked:0,hold:0,done:0};
-    tasks.forEach(t=>counts[taskState(t)]++);
-    return counts;
-  }
+  function taskStateLabel(task) { return ({ready:'Ready',blocked:'Blocked',hold:'On hold',done:'Completed',active:'In progress'})[taskState(task)]; }
+  function stateCounts(){const counts={ready:0,blocked:0,hold:0,done:0,active:0}; activeTasks().forEach(t=>counts[taskState(t)]++);return counts;}
   function toast(message) {
     const box=el('toast'); box.textContent=message; box.classList.add('show');
     clearTimeout(toastTimer); toastTimer=setTimeout(()=>box.classList.remove('show'),3200);
@@ -540,9 +716,9 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
   function loadAppearance(){
     try{
       const a=JSON.parse(localStorage.getItem(APPEARANCE_KEY)||'{}');
-      if(['studio','midnight','forest'].includes(a.theme))appTheme=a.theme;
-      if(['sidebar','top'].includes(a.layout))appLayout=a.layout;
-      if(['skill','flow'].includes(a.skin))graphSkin=a.skin;
+      if(['studio','midnight','forest','ocean','sunrise','lavender','rose','ember','slate','parchment'].includes(a.theme))appTheme=a.theme;
+      if(['sidebar','top','focus','command'].includes(a.layout))appLayout=a.layout;
+      if(['skill','flow','orbs'].includes(a.skin))graphSkin=a.skin;
       if(['vertical','horizontal'].includes(a.direction))graphDirection=a.direction;
     }catch(e){}
     applyAppearance();
@@ -550,8 +726,9 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
   function applyAppearance(){
     document.body.dataset.theme=appTheme;
     document.body.dataset.layout=appLayout;
-    document.querySelector('meta[name="color-scheme"]').content=appTheme==='midnight'?'dark':'light';
+    document.querySelector('meta[name="color-scheme"]').content=['midnight','ember'].includes(appTheme)?'dark':'light';
     el('graphArea').classList.toggle('skill-tree',graphSkin==='skill');
+    el('graphArea').classList.toggle('orb-field',graphSkin==='orbs');
     el('graphDirection').value=graphDirection;
     document.querySelectorAll('[data-theme-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.themeChoice===appTheme)));
     document.querySelectorAll('[data-layout-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.layoutChoice===appLayout)));
@@ -569,7 +746,7 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
         id:t.id, title:t.title.trim(), description:String(t.description || '').slice(0,20000),
         assignee:String(t.assignee || '').slice(0,90), milestone:String(t.milestone || '').slice(0,100),
         status:t.status, dependencies:t.dependencies.slice(), createdAt:Number(t.createdAt)||Date.now(),
-        graphPositions:safeGraphPositions(t.graphPositions)
+        graphPositions:safeGraphPositions(t.graphPositions),parentId:typeof t.parentId==='string'?t.parentId:'',milestoneId:typeof t.milestoneId==='string'?t.milestoneId:'',trashed:!!t.trashed
       };
     });
     const ids=new Set(output.map(t=>t.id));
@@ -577,6 +754,7 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
     for(const t of output) {
       if(t.dependencies.some(d=>typeof d !== 'string' || !ids.has(d) || d===t.id) || new Set(t.dependencies).size!==t.dependencies.length) throw Error('Invalid task dependencies in backup.');
     }
+    for(const t of output)if(t.parentId&&(!ids.has(t.parentId)||t.parentId===t.id))t.parentId='';
     if(hasCycles(output)) throw Error('Task dependencies contain a cycle.');
     return output;
   }
@@ -599,38 +777,53 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
   function emptyPanel(title, detail, actions=true) {
     return `<div class="zero-state"><div class="zero-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="9" width="5" height="6" rx="1"/><rect x="17" y="3" width="5" height="6" rx="1"/><rect x="17" y="15" width="5" height="6" rx="1"/><path d="M7 12h5l5-6m-5 6 5 6"/></svg></div><h2>${html(title)}</h2><p>${html(detail)}</p>${actions ? '<div class="zero-actions"><button class="btn primary" data-create>Add your first task</button><button class="btn" data-bulk>Paste a task list</button><button class="btn" data-sample>Load example project</button></div>':''}</div>`;
   }
-  function cardMarkup(t) {
-    const state=taskState(t);
-    const deps=t.dependencies.length;
+  const boardPrefs={};
+  function cardMarkup(t){
+    const state=taskState(t),sub=childrenOf(t.id),done=sub.filter(completion).length;
+    const color=statusDef(t.status).color;
     const initial=(t.assignee.trim().charAt(0)||'?').toUpperCase();
-    return `<div class="task-card" tabindex="0" role="button" draggable="true" data-id="${html(t.id)}" title="Open task ${html(t.title)}">
-      <div class="task-card-top"><h3>${html(t.title)}</h3></div>
+    return `<div class="task-card" tabindex="0" role="button" draggable="true" data-id="${html(t.id)}" style="--card-accent:${html(color)}" title="Open task ${html(t.title)}">
+      <div class="task-card-top"><h3>${html(t.title)}</h3><span class="status-dot" style="background:${html(color)}"></span></div>
       <p class="subdetail">${html(t.description||'No description')}</p>
-      <div class="tags"><span class="tag ${state}">${taskStateLabel(t)}</span>${deps?`<span class="tag dep">${deps} prerequisite${deps!==1?'s':''}</span>`:''}</div>
-      <div class="card-footer"><div class="assignee"><span class="avatar ${t.assignee?'':'empty'}">${html(initial)}</span><span>${html(t.assignee||'Unassigned')}</span></div><span class="milestone" title="${html(t.milestone||'No milestone')}">${html(t.milestone||'—')}</span></div>
+      <div class="tags"><span class="tag ${state}">${html(STATUS_LABELS[t.status])}</span>${state==='blocked'?'<span class="tag blocked">Blocked</span>':state==='ready'?'<span class="tag ready">Ready</span>':''}${t.dependencies.length?`<span class="tag dep">${t.dependencies.length} link(s)</span>`:''}${sub.length?`<span class="tag dep">${done}/${sub.length} subtasks</span>`:''}${t.parentId?'<span class="tag dep">Subtask</span>':''}</div>
+      <div class="card-footer"><div class="assignee"><span class="avatar ${t.assignee?'':'empty'}">${html(initial)}</span><span>${html(t.assignee||'Unassigned')}</span></div><span class="milestone">${html(projectSettings.milestones.find(m=>m.id===t.milestoneId)?.title||t.milestone||'—')}</span></div>
     </div>`;
   }
-  function renderBoard() {
+  function renderBoard(){
     const target=el('boardContent');
-    if(tasks.length===0) { target.innerHTML=emptyPanel('Build your project plan','Create tasks, assign owners, and link prerequisites. Then switch to the dependency map to see how the work connects.'); return; }
-    const matching = tasks.filter(t=>(t.title+' '+t.description+' '+t.assignee+' '+t.milestone).toLowerCase().includes(searchQuery));
-    target.innerHTML=`<div class="board">${STATUSES.map(status=>{
-      const list=matching.filter(t=>t.status===status).sort((a,b)=>a.createdAt-b.createdAt);
-      return `<div class="board-column" data-status="${status}"><div class="column-heading"><div class="column-title"><i></i>${STATUS_LABELS[status]}</div><span class="count">${list.length}</span></div><div class="task-list">${list.map(cardMarkup).join('')||'<div class="column-empty">Drop tasks here</div>'}</div></div>`;
+    el('trashCount').textContent=tasks.filter(t=>t.trashed).length;
+    const active=activeTasks();
+    document.querySelector('.board')?.style?.setProperty('--board-cols', projectSettings.statuses.length);
+    if(!active.length){target.innerHTML=emptyPanel('Build your project plan','Create tasks, subtasks and milestone checkpoints, or paste a task list.');return;}
+    const matching=active.filter(t=>(t.title+' '+t.description+' '+t.assignee+' '+t.milestone+' '+(projectSettings.milestones.find(m=>m.id===t.milestoneId)?.title||'')).toLowerCase().includes(searchQuery));
+    target.innerHTML=`<div class="board" style="--board-cols:${projectSettings.statuses.length}">${projectSettings.statuses.map(st=>{
+      const pref=boardPrefs[st.id]||{filter:'all',sort:'oldest',search:''};
+      const base=matching.filter(t=>t.status===st.id);
+      const list=base.filter(t=>{
+        if(pref.search&&!(`${t.title} ${t.description} ${t.assignee}`.toLowerCase().includes(pref.search.toLowerCase())))return false;
+        if(pref.filter==='ready')return prerequisitesDone(t);
+        if(pref.filter==='blocked')return !prerequisitesDone(t);
+        if(pref.filter==='top')return !t.parentId;
+        return true;
+      }).sort((a,b)=>pref.sort==='newest'?b.createdAt-a.createdAt:pref.sort==='name'?a.title.localeCompare(b.title):pref.sort==='owner'?a.assignee.localeCompare(b.assignee):pref.sort==='deps'?b.dependencies.length-a.dependencies.length:a.createdAt-b.createdAt);
+      return `<div class="board-column" data-status="${html(st.id)}" style="--status-color:${html(st.color)}"><div class="column-heading"><div class="column-title"><i></i>${html(st.label)}</div><span class="count">${list.length}${list.length!==base.length?` / ${base.length}`:''}</span></div>
+      <div class="column-filters"><input class="column-search" data-filter-column="${html(st.id)}" data-filter-key="search" placeholder="Search column" value="${html(pref.search)}" aria-label="Search ${html(st.label)}" />
+      <select data-filter-column="${html(st.id)}" data-filter-key="filter" aria-label="Filter ${html(st.label)}">${[['all','All tasks'],['ready','Ready'],['blocked','Blocked'],['top','Top-level']].map(([id,label])=>`<option value="${id}" ${pref.filter===id?'selected':''}>${label}</option>`).join('')}</select>
+      <select data-filter-column="${html(st.id)}" data-filter-key="sort" aria-label="Sort ${html(st.label)}">${[['oldest','Oldest'],['newest','Newest'],['name','A–Z'],['owner','Assignee'],['deps','Dependencies']].map(([id,label])=>`<option value="${id}" ${pref.sort===id?'selected':''}>${label}</option>`).join('')}</select></div>
+      <div class="task-list">${list.map(cardMarkup).join('')||'<div class="column-empty">No matching tasks · Drop a task here</div>'}</div></div>`;
     }).join('')}</div>`;
   }
-  function render() { updateMetrics(); renderBoard(); if(view==='graph') renderGraph(); }
-  function showView(name) {
+  function render(){updateMetrics();renderBoard();if(view==='graph')renderGraph();if(view==='progress')renderProgress();}
+  function showView(name){
+    if(!['board','graph','progress'].includes(name))return;
     view=name;
-    const graph = name==='graph';
-    el('boardView').classList.toggle('hidden',graph);
-    el('graphView').classList.toggle('hidden',!graph);
-    el('navBoard').classList.toggle('active',!graph);
-    el('navGraph').classList.toggle('active',graph);
-    el('pageTitle').textContent=graph?'Dependency map':'Task board';
-    el('pageSubtitle').textContent=graph?'Explore what must happen first and which tasks become available next.':'Manage tasks, owners, milestones, and progress.';
-    el('otherViewBtn').textContent=graph?'View task board':'View dependencies';
-    if(graph) requestAnimationFrame(()=>{renderGraph(false);focusStart();});
+    for(const v of ['board','graph','progress']){el(v+'View').classList.toggle('hidden',v!==name);el('nav'+v[0].toUpperCase()+v.slice(1)).classList.toggle('active',v===name);}
+    const titles={board:'Task board',graph:'Dependency map',progress:'Project progress'};
+    const subtitles={board:'Move work through your custom pipeline.',graph:'Connect tasks, subtasks and milestones in three visual styles.',progress:'Milestones, completion trends, and team workload.'};
+    el('pageTitle').textContent=titles[name];el('pageSubtitle').textContent=subtitles[name];
+    el('otherViewBtn').textContent=name==='graph'?'View task board':'View dependencies';
+    if(name==='graph')requestAnimationFrame(()=>{renderGraph(false);focusStart();});
+    if(name==='progress')renderProgress();
   }
   const QUICK_EXAMPLE = `Define requirements | Alex | Planning
 Sketch architecture | Jordan | Planning | Define requirements
@@ -653,9 +846,10 @@ System testing | Sam | Testing | Assemble prototype`;
     el('overlay').classList.remove('visible');
     document.body.style.overflow='';
   }
-  function bulkStatus(s) {
-    const clean=String(s||'').trim().toLowerCase();
-    return ({'':'todo',todo:'todo','to do':'todo','on hold':'on-hold','on-hold':'on-hold',hold:'on-hold',done:'completed',complete:'completed',completed:'completed'})[clean];
+  function bulkStatus(s){
+    const clean=String(s||'').trim().toLowerCase();if(!clean)return defaultStatus();
+    const aliases={done:'completed',complete:'completed',hold:'on-hold','on hold':'on-hold','to do':'todo',working:'in-progress','in progress':'in-progress'};
+    return projectSettings.statuses.find(st=>st.id===clean||st.label.toLowerCase()===clean||st.id===aliases[clean])?.id;
   }
   function splitDelimited(line,separator) {
     // Basic RFC-4180-style quoted fields; optional separator is comma, tab or pipe.
@@ -763,10 +957,17 @@ System testing | Sam | Testing | Assemble prototype`;
     el('descInput').value=task?.description||'';
     el('ownerInput').value=task?.assignee||'';
     el('milestoneInput').value=task?.milestone||'';
-    el('statusInput').value=task?.status||'todo';
+    updateStatusUi();
+    el('statusInput').value=task?.status||defaultStatus();
+    el('parentInput').innerHTML='<option value="">None — top-level task</option>'+activeTasks().filter(t=>t.id!==id && !isDescendantParent(t.id,id)).map(t=>`<option value="${html(t.id)}">${html(t.title)}</option>`).join('');
+    el('parentInput').value=task?.parentId||options?.parentId||'';
+    el('milestoneSelect').innerHTML='<option value="">No checkpoint</option>'+projectSettings.milestones.map(m=>`<option value="${html(m.id)}">${html(m.title)}</option>`).join('');
+    el('milestoneSelect').value=task?.milestoneId||'';
+    el('subtaskEditor').classList.toggle('hidden',!task);
+    renderSubtaskEditor(id);
     el('formError').classList.add('hidden');
     el('deleteTask').classList.toggle('hidden',!task);
-    const candidates=tasks.filter(t=>t.id!==id).sort((a,b)=>a.createdAt-b.createdAt);
+    const candidates=activeTasks().filter(t=>t.id!==id).sort((a,b)=>a.createdAt-b.createdAt);
     el('dependencyOptions').innerHTML = candidates.length
       ? candidates.map(t=>`<label class="dep-choice"><input type="checkbox" name="dependency" value="${html(t.id)}" ${task?.dependencies.includes(t.id)||pendingGraphDependency===t.id?'checked':''}/><span class="dep-choice-text"><strong>${html(t.title)}</strong><small>${html(STATUS_LABELS[t.status])}${t.milestone?' · '+html(t.milestone):''}</small></span></label>`).join('')
       : '<div style="font-size:12px;color:#8793a6;line-height:1.6;padding:9px 2px;">No other tasks exist yet. Create additional tasks to link dependencies.</div>';
@@ -792,22 +993,21 @@ System testing | Sam | Testing | Assemble prototype`;
     const old=editId?getTask(editId):null;
     const record={id:old?.id||uniqueId(),title,description:el('descInput').value.trim(),
       assignee:el('ownerInput').value.trim(),milestone:el('milestoneInput').value.trim(),
+      milestoneId:el('milestoneSelect').value,parentId:el('parentInput').value,trashed:false,
       status:el('statusInput').value,dependencies,createdAt:old?.createdAt||now,
       graphPositions:old?.graphPositions|| (pendingGraphPosition?{[graphDirection]:pendingGraphPosition}:{})};
     const proposed=old?tasks.map(t=>t.id===old.id?record:t):[...tasks,record];
+    if(record.parentId && (record.parentId===record.id || isDescendantParent(record.parentId,record.id))){showError('A parent cannot be its own descendant.');return;}
     if(hasCycles(proposed)){showError('Circular dependency: this task would eventually depend on itself. Remove one of the selected prerequisites.');return;}
     tasks=proposed;save();closeDrawer();render();
     if(view==='graph') renderGraph(false);
     toast(old?'Task updated.':'Task created.');
   }
   function deleteTask() {
-    if(!editId) return;
+    if(!editId)return;
     const task=getTask(editId);
-    if(!task || !confirm(`Delete “${task.title}”? This also removes it from other tasks’ dependency lists.`))return;
-    tasks=tasks.filter(t=>t.id!==task.id).map(t=>({...t,dependencies:t.dependencies.filter(d=>d!==task.id)}));
-    highlightedId=null; save();closeDrawer();render();
-    if(view==='graph') renderGraph(true);
-    toast('Task deleted.');
+    if(!task)return;
+    if(trashTask(task.id)){highlightedId=null;closeDrawer();}
   }
   function moveTask(id,status) {
     if(!STATUSES.includes(status))return;
@@ -822,7 +1022,8 @@ System testing | Sam | Testing | Assemble prototype`;
     const owners=['Alex','Jordan','Sam','Jordan','Taylor','Alex','Sam','Taylor'];
     const milestones=['Planning','Planning','Prototype','Prototype','Software','Prototype','Testing','Delivery'];
     const deps=[[],[0],[0],[1,2],[1],[3],[4,5],[6]];
-    const statuses=['completed','completed','todo','on-hold','todo','todo','todo','todo'];
+    const queued=defaultStatus(),done=projectSettings.statuses.find(s=>s.behavior==='done')?.id||queued,hold=projectSettings.statuses.find(s=>s.behavior==='hold')?.id||queued;
+    const statuses=[done,done,queued,hold,queued,queued,queued,queued];
     const ids=names.map(()=>uniqueId());
     tasks=names.map((title,i)=>({id:ids[i],title,description:'',assignee:owners[i],milestone:milestones[i],status:statuses[i],dependencies:deps[i].map(j=>ids[j]),createdAt:Date.now()+i}));
     highlightedId=null;searchQuery='';el('taskSearch').value='';save();render();
@@ -835,7 +1036,7 @@ System testing | Sam | Testing | Assemble prototype`;
     tasks=[];highlightedId=null;save();render();toast('All tasks cleared.');
   }
   function exportData() {
-    const content=JSON.stringify({app:'TaskGraph',version:1,exportedAt:new Date().toISOString(),tasks},null,2);
+    const content=JSON.stringify({app:'TaskGraph',version:3,exportedAt:new Date().toISOString(),tasks,settings:projectSettings},null,2);
     const blob=new Blob([content],{type:'application/json'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;a.download=`taskgraph-backup-${new Date().toISOString().slice(0,10)}.json`;
@@ -846,8 +1047,11 @@ System testing | Sam | Testing | Assemble prototype`;
     if(!file)return;
     try {
       const content=await file.text();
-      const parsed=validate(JSON.parse(content));
-      if(tasks.length && !confirm(`Replace your ${tasks.length} current task(s) with ${parsed.length} imported task(s)?`))return;
+      const data=JSON.parse(content),priorSettings=projectSettings;
+      setSettings(data.settings||defaultSettings());
+      let parsed;
+      try{parsed=validate(data);}catch(error){setSettings(priorSettings);throw error;}
+      if(tasks.length && !confirm(`Replace your ${tasks.length} current task(s) with ${parsed.length} imported task(s)?`)){setSettings(priorSettings);return;}
       tasks=parsed; highlightedId=null; searchQuery='';el('taskSearch').value='';save();render();
       if(view==='graph')renderGraph(true);
       toast(`Imported ${tasks.length} task(s).`);
@@ -855,191 +1059,244 @@ System testing | Sam | Testing | Assemble prototype`;
     finally {el('fileInput').value='';}
   }
 
+  // Project configuration, subtasks, milestones, safe trash and progress.
+  function updateStatusUi(){
+    const current=el('statusInput').value;
+    el('statusInput').innerHTML=projectSettings.statuses.map(st=>`<option value="${html(st.id)}">${html(st.label)}</option>`).join('');
+    el('statusInput').value=STATUSES.includes(current)?current:defaultStatus();
+  }
+  function isDescendantParent(candidateId,parentId){
+    if(!parentId)return false;
+    let cur=getTask(candidateId),seen=new Set();
+    while(cur?.parentId&&!seen.has(cur.id)){if(cur.parentId===parentId)return true;seen.add(cur.id);cur=getTask(cur.parentId);}
+    return false;
+  }
+  function renderSubtaskEditor(id){
+    if(!id){el('subtaskList').innerHTML='';return;}
+    el('subtaskList').innerHTML=childrenOf(id).map(t=>`<button type="button" class="subtask-link" data-edit-subtask="${html(t.id)}"><span class="status-dot" style="background:${statusDef(t.status).color}"></span>${html(t.title)} <small>${html(STATUS_LABELS[t.status])}</small></button>`).join('')||'<span class="small-note">No subtasks yet.</span>';
+  }
+  function addQuickSubtask(){
+    const title=el('quickSubtaskTitle').value.trim(),parent=editId;
+    if(!title||!parent)return;
+    tasks.push({id:uniqueId(),title,description:'',assignee:'',milestone:'',milestoneId:getTask(parent)?.milestoneId||'',parentId:parent,trashed:false,status:defaultStatus(),dependencies:[],createdAt:Date.now(),graphPositions:{}});
+    el('quickSubtaskTitle').value='';save();render();renderSubtaskEditor(parent);toast('Subtask added.');
+  }
+  function permanentlyDelete(id){
+    const removals=new Set([id]);
+    let changed=true;while(changed){changed=false;for(const t of tasks)if(t.parentId&&removals.has(t.parentId)&&!removals.has(t.id)){removals.add(t.id);changed=true;}}
+    tasks=tasks.filter(t=>!removals.has(t.id)).map(t=>({...t,dependencies:t.dependencies.filter(d=>!removals.has(d))}));
+  }
+  function trashTask(id){
+    const task=getTask(id);if(!task||task.trashed)return;
+    const count=childrenOf(id).length;
+    if(!confirm(`Move “${task.title}”${count?' and its '+count+' subtasks':''} to Trash? You can restore them later.`))return false;
+    const removals=new Set([id]);let changed=true;
+    while(changed){changed=false;for(const t of tasks)if(t.parentId&&removals.has(t.parentId)&&!removals.has(t.id)){removals.add(t.id);changed=true;}}
+    tasks.forEach(t=>{if(removals.has(t.id))t.trashed=true;});
+    save();render();toast('Moved to Trash.');return true;
+  }
+  function restoreTask(id){const target=getTask(id);if(!target)return;
+    target.trashed=false;
+    if(target.parentId&&getTask(target.parentId)?.trashed)target.parentId='';
+    // Restore the whole nested subtree so a parent is never restored without its children.
+    const restored=new Set([id]);let changed=true;
+    while(changed){changed=false;for(const t of tasks)if(t.parentId&&restored.has(t.parentId)&&!restored.has(t.id)){restored.add(t.id);changed=true;}}
+    tasks.forEach(t=>{if(restored.has(t.id))t.trashed=false;});
+    save();render();showTrash();
+  }
+  function openStudio(title,content,onSave){
+    studioAction=onSave;el('studioModalTitle').textContent=title;el('studioModalBody').innerHTML=content;
+    el('studioModal').classList.add('visible');el('overlay').classList.add('visible');document.body.style.overflow='hidden';
+  }
+  let studioAction=null,studioMode=null,editingMilestone=null,workingStatuses=[];
+  function closeStudio(){el('studioModal').classList.remove('visible');el('overlay').classList.remove('visible');document.body.style.overflow='';studioAction=null;studioMode=null;}
+  function showTrash(){
+    studioMode='trash';const trashed=tasks.filter(t=>t.trashed);
+    openStudio('Trash',`<p class="small-note">Tasks in Trash are hidden from the board and map. Restore or permanently delete them here.</p>${trashed.map(t=>`<div class="trash-row"><span>${html(t.title)}</span><button class="btn small" data-restore="${html(t.id)}">Restore</button><button class="btn small danger" data-erase="${html(t.id)}">Delete forever</button></div>`).join('')||'<p>Trash is empty.</p>'}`,closeStudio);
+    el('studioSave').textContent='Done';
+  }
+  function statusEditorHtml(){
+    return `<p class="small-note">Customize pipeline order, labels, colors and behavior. A “Completion” status unlocks dependent tasks. At least one is required.</p>
+    <div id="statusRows">${workingStatuses.map((st,i)=>`<div class="status-editor-row" data-status-index="${i}"><input aria-label="Status color" type="color" value="${html(st.color)}" data-status-prop="color" /><input aria-label="Status name" type="text" maxlength="32" value="${html(st.label)}" data-status-prop="label" /><select aria-label="Status behavior" data-status-prop="behavior">${[['queued','Queue'],['active','In progress'],['hold','On hold'],['done','Completion']].map(([b,label])=>`<option value="${b}" ${st.behavior===b?'selected':''}>${label}</option>`).join('')}</select><button type="button" class="btn small" data-order="up" title="Move up">↑</button><button type="button" class="btn small" data-order="down" title="Move down">↓</button><button type="button" class="btn small danger" data-remove-status title="Remove">×</button></div>`).join('')}</div>
+    <button class="btn" id="addStatusRow" type="button">+ Add status</button><div id="statusEditorError" class="error hidden"></div>`;
+  }
+  function openStatuses(){
+    workingStatuses=projectSettings.statuses.map(s=>({...s}));studioMode='statuses';
+    openStudio('Configure task statuses',statusEditorHtml(),saveStatusEditor);
+    el('studioSave').textContent='Save statuses';
+  }
+  function rerenderStatusEditor(){el('studioModalBody').innerHTML=statusEditorHtml();}
+  function saveStatusEditor(){
+    const edited=workingStatuses.map(st=>({...st,label:st.label.trim()}));
+    const error=el('statusEditorError');
+    if(!edited.length||edited.some(st=>!st.label)||!edited.some(st=>st.behavior==='done')){error.textContent='Use non-empty labels and at least one Completion status.';error.classList.remove('hidden');return;}
+    const oldIds=new Set(edited.map(st=>st.id));const fallback=edited.find(st=>st.behavior==='queued')?.id||edited[0].id;
+    tasks.forEach(t=>{if(!oldIds.has(t.status))t.status=fallback;});
+    projectSettings.statuses=edited;syncStatuses();updateStatusUi();save();render();closeStudio();toast('Pipeline settings saved for this workspace.');
+  }
+  function milestoneCount(m){const assigned=activeTasks().filter(t=>t.milestoneId===m.id || (!t.milestoneId&&t.milestone?.toLowerCase()===m.title.toLowerCase()));return {total:assigned.length,done:assigned.filter(completion).length,assigned};}
+  function milestoneEditor(id=null){
+    editingMilestone=id;studioMode='milestone';const m=projectSettings.milestones.find(m=>m.id===id);
+    openStudio(m?'Edit milestone':'New milestone',`<div class="field"><label for="msTitle">Milestone title</label><input id="msTitle" maxlength="100" placeholder="First playable prototype" value="${html(m?.title||'')}" /></div><div class="field"><label for="msDescription">Description</label><textarea id="msDescription" placeholder="A checkpoint to work toward">${html(m?.description||'')}</textarea></div><div class="field"><label for="msColor">Checkpoint color</label><input type="color" id="msColor" value="${html(m?.color||'#b58df0')}" /></div>${m?'<button class="btn danger" type="button" id="deleteMilestoneBtn">Delete milestone</button>':''}`,saveMilestone);
+    el('studioSave').textContent='Save milestone';
+    el('msTitle').focus();
+  }
+  function saveMilestone(){
+    const title=el('msTitle').value.trim();if(!title){el('msTitle').focus();return;}
+    if(editingMilestone){Object.assign(projectSettings.milestones.find(m=>m.id===editingMilestone),{title,description:el('msDescription').value,color:el('msColor').value});}
+    else projectSettings.milestones.push({id:uniqueId(),title,description:el('msDescription').value,color:el('msColor').value,graphPositions:{}});
+    save();render();closeStudio();toast('Milestone saved.');
+  }
+  function renderProgress(){
+    const active=activeTasks(),total=active.length,done=active.filter(completion).length;
+    const pct=total?Math.round(100*done/total):0;
+    const byOwner=new Map();active.forEach(t=>{const key=t.assignee.trim()||'Unassigned';const a=byOwner.get(key)||{total:0,done:0};a.total++;if(completion(t))a.done++;byOwner.set(key,a);});
+    el('progressContent').innerHTML=`<div class="progress-hero"><div><span class="eyebrow">COMPLETION</span><div class="progress-value">${pct}<small>%</small></div><p>${done} of ${total} tasks completed</p></div><div class="progress-ring" style="--percentage:${pct}"><span>${pct}%</span></div></div>
+      <div class="progress-stat-grid"><div class="progress-stat">${active.filter(t=>prerequisitesDone(t)&&!completion(t)&&statusDef(t.status)?.behavior==='queued').length}<small>Ready to start</small></div><div class="progress-stat">${active.filter(t=>!prerequisitesDone(t)&&!completion(t)).length}<small>With unmet dependencies</small></div><div class="progress-stat">${projectSettings.milestones.length}<small>Milestones</small></div><div class="progress-stat">${byOwner.size}<small>Assignee groups</small></div></div>
+      <div class="progress-sections"><div><h3>Milestone checkpoints <button class="btn small" data-new-milestone>+ Add</button></h3>${projectSettings.milestones.map(m=>{const a=milestoneCount(m),p=a.total?Math.round(a.done*100/a.total):0;return `<div class="progress-milestone" data-milestone-edit="${html(m.id)}"><div class="milestone-emblem" style="--emblem:${html(m.color)}">✦</div><div style="flex:1;min-width:0"><strong>${html(m.title)}</strong><small>${a.done}/${a.total} tasks complete${!a.total?' · assign tasks to track this milestone':''}</small><div class="progress-bar"><i style="width:${p}%;background:${html(m.color)}"></i></div></div><button class="btn small" data-milestone-edit="${html(m.id)}">Edit</button></div>`;}).join('')||'<p class="small-note">No milestones yet. Create a checkpoint, then assign tasks to it.</p>'}</div>
+      <div><h3>Team workload</h3>${[...byOwner].sort((a,b)=>b[1].total-a[1].total).map(([name,a])=>`<div class="workload-row"><span>${html(name)}</span><strong>${a.done}/${a.total}</strong><div class="progress-bar"><i style="width:${Math.round(a.done*100/a.total)}%"></i></div></div>`).join('')||'<p class="small-note">No assignments yet.</p>'}<h3 style="margin-top:26px">Next available work</h3>${active.filter(t=>prerequisitesDone(t)&&statusDef(t.status)?.behavior==='queued').slice(0,9).map(t=>`<button class="next-task" data-open-task="${html(t.id)}"><span>${html(t.title)}</span><span>→</span></button>`).join('')||'<p class="small-note">No unblocked tasks in the queue.</p>'}</div></div>`;
+  }
+
   // Dependency canvas: vertical or horizontal layouts with independent saved positions.
-  const NODE_W=232,NODE_H=120;
+  const NODE_W=248,NODE_H=178;
+  function graphItems(){
+    const parents=parentsOnly();
+    const ids=new Set(parents.map(p=>p.id));
+    const rootFor=id=>{let t=getTask(id),seen=new Set();while(t?.parentId&&!seen.has(t.id)&&!ids.has(t.id)){seen.add(t.id);t=getTask(t.parentId);}return t?.id||id;};
+    const edges=[];
+    for(const t of activeTasks())for(const dep of t.dependencies){const from=rootFor(dep),to=rootFor(t.id);if(from!==to&&ids.has(from)&&ids.has(to))edges.push({from,to});}
+    const dedup=[...new Map(edges.map(e=>[e.from+':'+e.to,e])).values()];
+    const ms=projectSettings.milestones.map(m=>({...m,id:'ms:'+m.id,isMilestone:true}));
+    for(const m of ms){const assigned=milestoneCount(m);for(const t of assigned.assigned){const from=rootFor(t.id);if(ids.has(from))dedup.push({from,to:m.id});}}
+    return {nodes:[...parents,...ms],edges:dedup};
+  }
   function buildLayout(){
-    const byId=new Map(tasks.map(t=>[t.id,t]));
-    const depths=new Map();
-    const depth=id=>{
-      if(depths.has(id))return depths.get(id);
-      const t=byId.get(id); const d=t.dependencies.length?Math.max(...t.dependencies.map(depth))+1:0;
-      depths.set(id,d);return d;
-    };
-    for(const t of tasks)depth(t.id);
-    const groups=[];
-    for(const t of tasks)(groups[depths.get(t.id)]??=[]).push(t);
+    const {nodes,edges}=graphItems(),byId=new Map(nodes.map(t=>[t.id,t])),depths=new Map();
+    const depth=id=>{if(depths.has(id))return depths.get(id);const prereqs=edges.filter(e=>e.to===id).map(e=>e.from);const d=prereqs.length?Math.max(...prereqs.map(depth))+1:0;depths.set(id,d);return d;};
+    nodes.forEach(t=>depth(t.id));
+    const groups=[];nodes.forEach(t=>(groups[depths.get(t.id)]??=[]).push(t));
     const positions=new Map();
     groups.forEach((group,layer)=>{
-      if(layer>0)group.sort((a,b)=>{
-        const position=t=>t.dependencies.reduce((n,id)=>n+(positions.get(id)?.index||0),0)/Math.max(1,t.dependencies.length);
-        return position(a)-position(b)||a.createdAt-b.createdAt;
-      });
-      group.forEach((t,index)=>positions.set(t.id,{index,...(graphDirection==='vertical'
-        ?{x:90+index*298,y:95+layer*207}:{x:88+layer*320,y:90+index*176})}));
+      group.sort((a,b)=>a.isMilestone===b.isMilestone?((a.createdAt||0)-(b.createdAt||0)):a.isMilestone?1:-1);
+      group.forEach((t,index)=>positions.set(t.id,{index,...(graphDirection==='vertical'?{x:100+index*328,y:100+layer*268}:{x:110+layer*365,y:100+index*248})}));
     });
-    if(graphDirection==='vertical'){
-      const largest=Math.max(1,...groups.map(g=>g.length));
-      for(const group of groups){const shift=(largest-group.length)*149;group.forEach(t=>positions.get(t.id).x+=shift);}
-    }else{
-      const largest=Math.max(1,...groups.map(g=>g.length));
-      for(const group of groups){const shift=(largest-group.length)*88;group.forEach(t=>positions.get(t.id).y+=shift);}
-    }
-    for(const t of tasks){
-      const saved=t.graphPositions?.[graphDirection];
-      if(saved)positions.set(t.id,{...positions.get(t.id),x:saved.x,y:saved.y});
-    }
+    if(graphDirection==='vertical'){const largest=Math.max(1,...groups.map(g=>g.length));groups.forEach(group=>group.forEach(t=>positions.get(t.id).x+=(largest-group.length)*164));}
+    else{const largest=Math.max(1,...groups.map(g=>g.length));groups.forEach(group=>group.forEach(t=>positions.get(t.id).y+=(largest-group.length)*124));}
+    nodes.forEach(t=>{const saved=t.graphPositions?.[graphDirection];if(saved)Object.assign(positions.get(t.id),{x:saved.x,y:saved.y});});
     return positions;
   }
   function descendants(id){
-    const reached=new Set();if(!id)return reached;
-    const explore=current=>{for(const t of tasks)if(t.dependencies.includes(current)&&!reached.has(t.id)){reached.add(t.id);explore(t.id);}};
-    explore(id);return reached;
+    const reached=new Set(),edges=graphItems().edges;
+    if(!id)return reached;
+    const visit=from=>{for(const edge of edges)if(edge.from===from&&!reached.has(edge.to)){reached.add(edge.to);visit(edge.to);}};visit(id);return reached;
   }
   function svgTextLines(title,maxChars=28,maxLines=2){
     const lines=[];let current='';
-    for(const word of title.split(/\s+/)){
+    for(const word of String(title).split(/\s+/)){
       if((current+' '+word).trim().length>maxChars&&current){lines.push(current);current=word;}
       else current=(current+' '+word).trim();
-    }
-    if(current)lines.push(current);
-    const output=lines.slice(0,maxLines);
-    if(lines.length>maxLines)output[maxLines-1]=output[maxLines-1].slice(0,maxChars-2)+'…';
-    return output;
+    }if(current)lines.push(current);
+    const output=lines.slice(0,maxLines);if(lines.length>maxLines)output[maxLines-1]=output[maxLines-1].slice(0,maxChars-2)+'…';return output;
   }
   function graphPalette(){
-    if(appTheme==='midnight')return {card:'#17253b',text:'#f1f5ff',sub:'#afbdd4',line:'#52627d',border:'#405270',active:'#b5b4ff'};
-    if(appTheme==='forest')return {card:'#fffffa',text:'#263a2e',sub:'#728675',line:'#9ab3a4',border:'#c9dacf',active:'#427c64'};
-    return {card:'#ffffff',text:'#23304b',sub:'#8190a6',line:'#b5c2d3',border:'#d9e0eb',active:'#756ce3'};
+    const css=getComputedStyle(document.body),v=x=>css.getPropertyValue(x).trim();
+    return {card:v('--surface')||'#fff',text:v('--ink')||'#23304b',sub:v('--muted')||'#8190a6',line:v('--graph-line')||'#9aa9bf',border:v('--border')||'#d9e0eb',active:v('--purple')||'#756ce3'};
   }
   function graphNode(t,p,related){
-    const state=taskState(t),pal=graphPalette();
-    const color={ready:appTheme==='midnight'?'#79b6ff':'#397fcb',blocked:appTheme==='midnight'?'#9eabc0':'#929db0',hold:appTheme==='midnight'?'#e4b161':'#c18a32',done:appTheme==='midnight'?'#63cca1':'#2a9a77'}[state];
-    const bg={ready:appTheme==='midnight'?'#1a3858':'#edf5ff',blocked:appTheme==='midnight'?'#2a3444':'#f1f3f7',hold:appTheme==='midnight'?'#423722':'#fff6e6',done:appTheme==='midnight'?'#193e35':'#e8f8f0'}[state];
+    const pal=graphPalette(),isMs=!!t.isMilestone;
+    const state=isMs?'milestone':taskState(t),color=isMs?t.color:statusDef(t.status).color;
     const selected=highlightedId===t.id;
-    const opacity=highlightedId&&!related.has(t.id)&&!selected?.38:1;
-    const title=svgTextLines(t.title).map((line,i)=>`<text x="19" y="${39+i*18}" font-size="13.5" font-weight="720" fill="${pal.text}">${svgEscape(line)}</text>`).join('');
-    const vert=graphDirection==='vertical',cx=vert?NODE_W/2:0,cy=vert?0:NODE_H/2,
-      ox=vert?NODE_W/2:NODE_W,oy=vert?NODE_H:NODE_H/2;
-    const label=taskStateLabel(t),badgeW=Math.max(46,label.length*6.5+18);
-    return `<g class="graph-node" role="button" tabindex="0" data-node="${svgEscape(t.id)}" transform="translate(${p.x} ${p.y})" opacity="${opacity}">
-      <rect class="node-body" x="0" y="0" width="${NODE_W}" height="${NODE_H}" rx="${graphSkin==='skill'?16:10}" fill="${pal.card}" stroke="${selected?pal.active:pal.border}" stroke-width="${selected?2.7:1.5}" filter="url(#nodeShadow)"/>
-      ${graphSkin==='skill'?`<path d="M 12 6 H ${NODE_W-12}" stroke="${color}" stroke-width="2" opacity=".72"/>`:`<rect x="0" y="10" width="4" height="100" rx="2" fill="${color}"/>`}
-      ${title}
-      <rect x="17" y="77" rx="6" width="${badgeW}" height="22" fill="${bg}"/>
-      <text x="26" y="92.5" font-size="10.5" font-weight="740" fill="${color}">${label}</text>
-      <text x="18" y="112" font-size="10" fill="${pal.sub}">${svgEscape((t.assignee||'Unassigned').slice(0,24))}</text>
-      <text x="${NODE_W-16}" y="112" text-anchor="end" font-size="9.5" fill="${pal.sub}">${t.dependencies.length?t.dependencies.length+' prerequisite'+(t.dependencies.length>1?'s':''):'START'}</text>
-      <circle class="graph-port" data-port="in" cx="${cx}" cy="${cy}" r="8" stroke="${pal.border}" stroke-width="2" fill="${pal.card}" aria-label="Incoming dependency port"/>
-      <circle class="graph-port" data-port="out" cx="${ox}" cy="${oy}" r="9" stroke="${color}" stroke-width="2.5" fill="${pal.card}" aria-label="Drag to a task to add a dependency"/>
-      <circle cx="${ox}" cy="${oy}" r="2.7" fill="${color}" pointer-events="none"/>
-      <title>${svgEscape(t.title)} — ${taskStateLabel(t)}. Drag to reposition. Drag from output port to another task to link.</title>
-    </g>`;
+    const faded=highlightedId&&!related.has(t.id)&&!selected;
+    const subs=isMs?[]:childrenOf(t.id),subDone=subs.filter(completion).length;
+    const title=svgTextLines(t.title,graphSkin==='orbs'?19:26,2);
+    const text=(lines,x,y,size=13)=>lines.map((line,i)=>`<text x="${x}" y="${y+i*18}" font-size="${size}" text-anchor="${graphSkin==='orbs'?'middle':'start'}" font-weight="750" fill="${pal.text}">${svgEscape(line)}</text>`).join('');
+    let body='';
+    if(graphSkin==='flow'){
+      body=`<rect class="node-body" x="0" y="0" width="${NODE_W}" height="${NODE_H}" rx="12" fill="${pal.card}" stroke="${selected?pal.active:pal.border}" stroke-width="${selected?3:1.4}" filter="url(#nodeShadow)"/>
+        <path d="M10 5 H238" stroke="${color}" stroke-width="5" stroke-linecap="round"/>${isMs?`<path d="M124 12 L135 28 L124 44 L113 28Z" fill="${color}"/>`:''}
+        ${text(title,17,isMs?65:36)}<text x="17" y="${isMs?109:81}" font-size="11" fill="${pal.sub}">${isMs?`CHECKPOINT · ${milestoneCount(t).done}/${milestoneCount(t).total} done`:svgEscape(STATUS_LABELS[t.status])}</text>
+        ${!isMs?`<text x="17" y="104" font-size="10.5" fill="${pal.sub}">${svgEscape((t.assignee||'Unassigned').slice(0,25))}</text>`:''}
+        ${subs.slice(0,3).map((c,i)=>`<g data-subtask="${svgEscape(c.id)}" class="graph-subtask"><rect x="12" y="${117+i*17}" width="223" height="15" rx="5" fill="${pal.border}" opacity=".4"/><text x="20" y="${129+i*17}" font-size="10" fill="${pal.text}">${completion(c)?'✓ ':'· '}${svgEscape(c.title.slice(0,31))}</text></g>`).join('')}
+        ${subs.length>3?`<text x="216" y="174" text-anchor="end" font-size="10" fill="${pal.sub}">+${subs.length-3} more</text>`:''}`;
+    }else if(graphSkin==='skill'){
+      body=`<rect x="4" y="5" width="240" height="166" rx="8" fill="${pal.active}" opacity=".10"/>
+        <path class="node-body" d="M20 4 H228 L244 20 V156 L228 174 H20 L4 158 V20 Z" fill="${pal.card}" stroke="${selected?pal.active:color}" stroke-width="${selected?3.3:2}" filter="url(#nodeShadow)"/>
+        <path d="M21 15 H227 M16 158 H231" stroke="${color}" stroke-width="1.5" opacity=".65"/>
+        <path d="M124 15 l11 12 -11 12 -11 -12 Z" fill="${color}" fill-opacity=".24" stroke="${color}"/>
+        <text x="124" y="31" text-anchor="middle" font-size="14" fill="${color}">${isMs?'✦':'◆'}</text>
+        ${title.map((line,i)=>`<text x="124" y="${58+i*18}" text-anchor="middle" font-size="13.3" font-weight="800" fill="${pal.text}">${svgEscape(line)}</text>`).join('')}
+        <rect x="36" y="93" width="176" height="24" rx="12" fill="${color}" fill-opacity=".16"/>
+        <text x="124" y="109" font-size="11" font-weight="750" text-anchor="middle" fill="${color}">${isMs?'MILESTONE':svgEscape(STATUS_LABELS[t.status])}</text>
+        <text x="124" y="135" font-size="10.8" text-anchor="middle" fill="${pal.sub}">${isMs?milestoneCount(t).done+'/'+milestoneCount(t).total+' tasks':subs.length?subDone+'/'+subs.length+' subtasks':svgEscape(t.assignee||'Unassigned')}</text>
+        ${subs.slice(0,3).map((c,i)=>`<g data-subtask="${svgEscape(c.id)}" class="graph-subtask"><circle cx="${93+i*30}" cy="153" r="8" fill="${completion(c)?color:pal.border}" stroke="${color}" stroke-width="1"/><text x="${93+i*30}" y="157" font-size="10" text-anchor="middle" fill="${pal.text}">${completion(c)?'✓':i+1}</text></g>`).join('')}`;
+    }else{
+      const gradient=isMs?'url(#milestoneGlow)':'url(#glassOrb)',r=isMs?75:69;
+      body=`<circle cx="124" cy="86" r="${r+10}" fill="${color}" opacity=".11" filter="url(#orbGlow)"/>
+        <circle class="node-body" cx="124" cy="86" r="${r}" fill="${gradient}" stroke="${color}" stroke-width="${isMs?4:2.1}" stroke-opacity=".80" filter="url(#nodeShadow)"/>
+        <ellipse cx="100" cy="43" rx="47" ry="14" fill="#fff" opacity=".20" transform="rotate(-22 100 43)"/>
+        ${isMs?`<circle cx="124" cy="86" r="68" fill="${color}" fill-opacity=".19"/><path d="M124 28 L134 69 L175 79 L134 89 L124 135 L114 89 L73 79 L114 69 Z" fill="${color}" fill-opacity=".44"/>`: ''}
+        ${title.map((line,i)=>`<text x="124" y="${77+i*19-(title.length===1?0:6)}" text-anchor="middle" font-size="${isMs?13.5:12.8}" font-weight="780" fill="${pal.text}">${svgEscape(line)}</text>`).join('')}
+        <text x="124" y="${title.length===1?100:113}" text-anchor="middle" font-size="10.5" fill="${color}">${isMs?'✦ MILESTONE':svgEscape(STATUS_LABELS[t.status])}</text>
+        ${subs.slice(0,5).map((c,i)=>{const angle=(i/(Math.min(5,subs.length)+1)+.05)*Math.PI,x=124+92*Math.cos(angle),y=86+92*Math.sin(angle);return `<g data-subtask="${svgEscape(c.id)}" class="graph-subtask"><circle cx="${x}" cy="${y}" r="10" fill="${completion(c)?color:pal.card}" stroke="${color}" stroke-width="1.5"/><title>${svgEscape(c.title)}</title></g>`;}).join('')}
+        ${subs.length?`<text x="124" y="174" text-anchor="middle" font-size="10" fill="${pal.sub}">${subDone}/${subs.length} steps</text>`:''}`;
+    }
+    const vert=graphDirection==='vertical',cx=vert?NODE_W/2:0,cy=vert?0:NODE_H/2,ox=vert?NODE_W/2:NODE_W,oy=vert?NODE_H:NODE_H/2;
+    const ports=isMs?'':`<circle class="graph-port" data-port="in" cx="${cx}" cy="${cy}" r="8" stroke="${pal.border}" stroke-width="2" fill="${pal.card}"/><circle class="graph-port" data-port="out" cx="${ox}" cy="${oy}" r="9" stroke="${color}" stroke-width="2.5" fill="${pal.card}"/><circle cx="${ox}" cy="${oy}" r="3" fill="${color}" pointer-events="none"/>`;
+    return `<g class="graph-node ${isMs?'milestone-node':''}" role="button" tabindex="0" data-node="${svgEscape(t.id)}" transform="translate(${p.x} ${p.y})" opacity="${faded?.32:1}">${body}${ports}<title>${svgEscape(t.title)}${isMs?' — milestone':' — '+taskStateLabel(t)}. Drag to reposition.</title></g>`;
   }
   function edgeCoordinates(from,to,positions=graphPositions){
     const a=positions.get(from),b=positions.get(to);if(!a||!b)return '';
-    if(graphDirection==='vertical'){
-      const x1=a.x+NODE_W/2,y1=a.y+NODE_H,x2=b.x+NODE_W/2,y2=b.y;
-      const bend=Math.max(42,Math.abs(y2-y1)*.47);
-      return `M ${x1} ${y1} C ${x1} ${y1+bend},${x2} ${y2-bend},${x2} ${y2-8}`;
-    }
-    const x1=a.x+NODE_W,y1=a.y+NODE_H/2,x2=b.x,y2=b.y+NODE_H/2;
-    const bend=Math.max(50,Math.abs(x2-x1)*.42);
-    return `M ${x1} ${y1} C ${x1+bend} ${y1},${x2-bend} ${y2},${x2-8} ${y2}`;
+    if(graphDirection==='vertical'){const x1=a.x+NODE_W/2,y1=a.y+NODE_H,x2=b.x+NODE_W/2,y2=b.y;const bend=Math.max(44,Math.abs(y2-y1)*.45);return `M ${x1} ${y1} C ${x1} ${y1+bend},${x2} ${y2-bend},${x2} ${y2-8}`;}
+    const x1=a.x+NODE_W,y1=a.y+NODE_H/2,x2=b.x,y2=b.y+NODE_H/2;const bend=Math.max(55,Math.abs(x2-x1)*.43);return `M ${x1} ${y1} C ${x1+bend} ${y1},${x2-bend} ${y2},${x2-8} ${y2}`;
   }
-  function updateGraphGeometry(){
-    el('graphStage').querySelectorAll('[data-edge-from]').forEach(edge=>edge.setAttribute('d',edgeCoordinates(edge.dataset.edgeFrom,edge.dataset.edgeTo)));
-  }
+  function updateGraphGeometry(){el('graphStage').querySelectorAll('[data-edge-from]').forEach(edge=>edge.setAttribute('d',edgeCoordinates(edge.dataset.edgeFrom,edge.dataset.edgeTo)));}
   function renderGraph(fit=false){
-    const stage=el('graphStage');
-    if(!tasks.length){graphPositions=new Map();stage.innerHTML='';el('graphEmpty').classList.remove('hidden');el('graphEmpty').innerHTML=emptyPanel('No dependencies to show','Right-click the canvas or create tasks to build a dependency tree.');return;}
-    el('graphEmpty').classList.add('hidden');
-    graphPositions=buildLayout();
-    const coords=[...graphPositions.values()];
-    const minX=Math.min(...coords.map(p=>p.x))-52,minY=Math.min(...coords.map(p=>p.y))-53;
-    graphBounds={minX,minY,width:Math.max(...coords.map(p=>p.x+NODE_W))+52-minX,height:Math.max(...coords.map(p=>p.y+NODE_H))+54-minY};
+    const stage=el('graphStage'),{nodes,edges}=graphItems();
+    if(!nodes.length){graphPositions=new Map();stage.innerHTML='';el('graphEmpty').classList.remove('hidden');el('graphEmpty').innerHTML=emptyPanel('Start your dependency tree','Right-click the canvas to create tasks and checkpoints.');return;}
+    el('graphEmpty').classList.add('hidden');graphPositions=buildLayout();
+    const coords=[...graphPositions.values()];const minX=Math.min(...coords.map(p=>p.x))-70,minY=Math.min(...coords.map(p=>p.y))-70;
+    graphBounds={minX,minY,width:Math.max(...coords.map(p=>p.x+NODE_W))+70-minX,height:Math.max(...coords.map(p=>p.y+NODE_H))+70-minY};
     const pal=graphPalette(),down=descendants(highlightedId),related=new Set([highlightedId,...down]);
-    const edges=tasks.flatMap(t=>t.dependencies.map(from=>({from,to:t.id}))).map(({from,to})=>{
-      const d=edgeCoordinates(from,to),active=highlightedId&&(from===highlightedId||down.has(from))&&down.has(to),fade=highlightedId&&!active;
-      const stroke=active?pal.active:pal.line;
-      return `<path class="graph-edge" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke="${stroke}" stroke-width="${active?3.2:graphSkin==='skill'?2.3:1.7}" opacity="${fade?.23:1}" marker-end="url(#${active?'arrowActive':'arrowDefault'})" />
-      <path class="graph-edge-hit" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke-width="16"/>`;
-    }).join('');
-    const nodes=tasks.map(t=>graphNode(t,graphPositions.get(t.id),related)).join('');
+    const paths=edges.map(({from,to})=>{const d=edgeCoordinates(from,to),active=highlightedId&&(from===highlightedId||down.has(from))&&down.has(to);
+      return `<path class="graph-edge" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke="${active?pal.active:graphSkin==='skill'?'#c5a66a':pal.line}" stroke-width="${graphSkin==='skill'?3.6:graphSkin==='orbs'?2.2:1.8}" opacity="${highlightedId&&!active?.25:1}" ${graphSkin==='skill'?'stroke-dasharray="2 7"':''} marker-end="url(#${active?'arrowActive':'arrowDefault'})"/><path class="graph-edge-hit" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke-width="16"/>`;}).join('');
     stage.innerHTML=`<defs>
-      <filter id="nodeShadow" x="-30%" y="-30%" width="160%" height="175%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="${appTheme==='midnight'?'#000000':'#283b62'}" flood-opacity="${graphSkin==='skill'?.18:.08}"/></filter>
-      <marker id="treeArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="${pal.line}"/></marker></defs>${edges}${nodes}`;
-    const markerDefault=el('arrowDefault').querySelector('path'),markerActive=el('arrowActive').querySelector('path');
-    markerDefault.setAttribute('fill',pal.line);markerActive.setAttribute('fill',pal.active);
+      <filter id="nodeShadow" x="-45%" y="-45%" width="190%" height="200%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#14263c" flood-opacity=".20"/></filter>
+      <filter id="orbGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter>
+      <radialGradient id="glassOrb" cx=".30" cy=".23" r=".9"><stop offset="0" stop-color="#ffffff" stop-opacity=".62"/><stop offset=".38" stop-color="${pal.card}" stop-opacity=".82"/><stop offset="1" stop-color="${pal.active}" stop-opacity=".17"/></radialGradient>
+      <radialGradient id="milestoneGlow" cx=".3" cy=".25" r=".88"><stop offset="0" stop-color="#ffffff" stop-opacity=".8"/><stop offset=".43" stop-color="#dfb8ff" stop-opacity=".72"/><stop offset="1" stop-color="#8364d5" stop-opacity=".46"/></radialGradient>
+      </defs>${paths}${nodes.map(t=>graphNode(t,graphPositions.get(t.id),related)).join('')}`;
+    el('arrowDefault').querySelector('path').setAttribute('fill',pal.line);el('arrowActive').querySelector('path').setAttribute('fill',pal.active);
     if(fit)fitGraph();else applyTransform();
   }
   function applyTransform(){el('graphStage').setAttribute('transform',`translate(${transform.x},${transform.y}) scale(${transform.k})`);}
   function fitGraph(){
-    if(!tasks.length)return;
-    const rect=el('graphSvg').getBoundingClientRect();if(!rect.width||!rect.height)return;
-    const pad=60,scale=Math.min(1.12,Math.max(.14,Math.min((rect.width-pad*2)/graphBounds.width,(rect.height-pad*2)/graphBounds.height)));
-    transform={x:(rect.width-graphBounds.width*scale)/2-graphBounds.minX*scale,y:(rect.height-graphBounds.height*scale)/2-graphBounds.minY*scale,k:scale};
-    applyTransform();
+    if(!graphItems().nodes.length)return;const r=el('graphSvg').getBoundingClientRect();if(!r.width||!r.height)return;
+    const pad=65,scale=Math.min(1.08,Math.max(.14,Math.min((r.width-pad*2)/graphBounds.width,(r.height-pad*2)/graphBounds.height)));
+    transform={x:(r.width-graphBounds.width*scale)/2-graphBounds.minX*scale,y:(r.height-graphBounds.height*scale)/2-graphBounds.minY*scale,k:scale};applyTransform();
   }
   function focusStart(){
-    if(!tasks.length)return;
-    const roots=tasks.filter(t=>!t.dependencies.length).map(t=>graphPositions.get(t.id)).filter(Boolean);
-    if(!roots.length)return fitGraph();
-    const rect=el('graphSvg').getBoundingClientRect();if(!rect.width||!rect.height)return;
-    const minX=Math.min(...roots.map(p=>p.x)),maxX=Math.max(...roots.map(p=>p.x+NODE_W));
-    const minY=Math.min(...roots.map(p=>p.y));
-    const scale=Math.min(1.1,Math.max(.42,(rect.width-115)/(maxX-minX+80)));
-    transform={k:scale,x:rect.width/2-(minX+maxX)/2*scale,y:Math.max(74,rect.height*.12)-minY*scale};
-    applyTransform();
+    const {nodes,edges}=graphItems();if(!nodes.length)return;
+    const roots=nodes.filter(t=>!edges.some(e=>e.to===t.id)).map(t=>graphPositions.get(t.id)).filter(Boolean);
+    if(!roots.length)return fitGraph();const r=el('graphSvg').getBoundingClientRect();if(!r.width||!r.height)return;
+    const minX=Math.min(...roots.map(p=>p.x)),maxX=Math.max(...roots.map(p=>p.x+NODE_W)),minY=Math.min(...roots.map(p=>p.y));
+    const scale=Math.min(1.1,Math.max(.40,(r.width-110)/(maxX-minX+80)));
+    transform={k:scale,x:r.width/2-(minX+maxX)/2*scale,y:Math.max(76,r.height*.12)-minY*scale};applyTransform();
   }
-  function zoomGraph(factor,clientX=null,clientY=null){
-    if(!tasks.length)return;
-    const r=el('graphSvg').getBoundingClientRect(),x=clientX===null?r.width/2:clientX-r.left,y=clientY===null?r.height/2:clientY-r.top;
-    const next=Math.max(.16,Math.min(3,transform.k*factor)),ratio=next/transform.k;
-    transform={x:x-(x-transform.x)*ratio,y:y-(y-transform.y)*ratio,k:next};applyTransform();
-  }
-  function graphPoint(clientX,clientY){
-    const rect=el('graphSvg').getBoundingClientRect();
-    return {x:(clientX-rect.left-transform.x)/transform.k,y:(clientY-rect.top-transform.y)/transform.k};
-  }
-  function resetLayout(){
-    if(!tasks.length)return;
-    tasks.forEach(t=>{if(t.graphPositions)delete t.graphPositions[graphDirection];});
-    save();renderGraph(true);toast('Nodes auto-arranged.');
-  }
-  function addGraphDependency(from,to){
-    if(from===to){toast('A task cannot depend on itself.');return;}
-    const target=getTask(to);
-    if(!target || !getTask(from))return;
-    if(target.dependencies.includes(from)){toast('That dependency already exists.');return;}
-    target.dependencies.push(from);
-    if(hasCycles(tasks)){target.dependencies.pop();toast('Cannot link tasks: this would create a circular dependency.');return;}
-    save();render();toast('Dependency added.');
-  }
-  function removeGraphDependency(from,to){
-    const task=getTask(to);if(!task)return;
-    task.dependencies=task.dependencies.filter(id=>id!==from);
-    save();render();toast('Dependency removed.');
-  }
+  function zoomGraph(factor,clientX=null,clientY=null){if(!graphItems().nodes.length)return;const r=el('graphSvg').getBoundingClientRect(),x=clientX===null?r.width/2:clientX-r.left,y=clientY===null?r.height/2:clientY-r.top,next=Math.max(.14,Math.min(3,transform.k*factor)),ratio=next/transform.k;transform={x:x-(x-transform.x)*ratio,y:y-(y-transform.y)*ratio,k:next};applyTransform();}
+  function graphPoint(clientX,clientY){const r=el('graphSvg').getBoundingClientRect();return {x:(clientX-r.left-transform.x)/transform.k,y:(clientY-r.top-transform.y)/transform.k};}
+  function resetLayout(){if(!graphItems().nodes.length)return;for(const t of tasks)if(t.graphPositions)delete t.graphPositions[graphDirection];for(const m of projectSettings.milestones)if(m.graphPositions)delete m.graphPositions[graphDirection];save();renderGraph(true);toast('Nodes auto-arranged.');}
+  function addGraphDependency(from,to){if(to.startsWith('ms:')||from.startsWith('ms:'))return toast('Assign tasks to milestones in task details.');if(from===to)return toast('A task cannot depend on itself.');const target=getTask(to);if(!target||!getTask(from))return;if(target.dependencies.includes(from))return toast('Dependency already exists.');target.dependencies.push(from);if(hasCycles(tasks)){target.dependencies.pop();return toast('Circular dependency rejected.');}save();render();toast('Dependency linked.');}
+  function removeGraphDependency(from,to){if(to.startsWith('ms:'))return toast('Milestone links are managed from task details.');const task=getTask(to);if(!task)return;task.dependencies=task.dependencies.filter(id=>id!==from);save();render();toast('Dependency removed.');}
   function hideGraphContext(){el('graphContext').classList.add('hidden');}
   let contextData=null;
   function graphContext(clientX,clientY,target){
-    const area=el('graphArea'),menu=el('graphContext'),r=area.getBoundingClientRect();
-    const node=target.closest('.graph-node'),edge=target.closest('.graph-edge-hit');
-    const point=graphPoint(clientX,clientY);
+    const area=el('graphArea'),menu=el('graphContext'),r=area.getBoundingClientRect(),node=target.closest('.graph-node'),edge=target.closest('.graph-edge-hit'),point=graphPoint(clientX,clientY);
     contextData={nodeId:node?.dataset.node||null,edgeFrom:edge?.dataset.edgeFrom||null,edgeTo:edge?.dataset.edgeTo||null,position:{x:Math.round(point.x-NODE_W/2),y:Math.round(point.y-NODE_H/2)}};
-    if(edge){
-      const from=getTask(edge.dataset.edgeFrom),to=getTask(edge.dataset.edgeTo);
-      menu.innerHTML=`<button data-graph-action="unlink">Remove dependency</button><div class="separator"></div><div style="padding:7px 9px;font-size:10px;color:var(--muted);line-height:1.5">${html(from?.title||'Task')} → ${html(to?.title||'Task')}</div>`;
-    }else if(node){
-      menu.innerHTML=`<button data-graph-action="edit">Edit task</button><button data-graph-action="child">New dependent task</button><button data-graph-action="complete">Mark completed</button><button data-graph-action="hold">Move to on hold</button><button data-graph-action="todo">Move to to do</button><div class="separator"></div><button data-graph-action="delete">Delete task</button>`;
-    }else{
-      menu.innerHTML=`<button data-graph-action="new">+ New task here</button><button data-graph-action="bulk">Bulk add tasks</button><div class="separator"></div><button data-graph-action="arrange">Auto arrange all nodes</button>`;
-    }
-    menu.classList.remove('hidden');
-    const x=Math.max(6,Math.min(clientX-r.left,area.clientWidth-menu.offsetWidth-6)),y=Math.max(6,Math.min(clientY-r.top,area.clientHeight-menu.offsetHeight-6));
-    menu.style.left=x+'px';menu.style.top=y+'px';
+    if(edge){menu.innerHTML=edge.dataset.edgeTo.startsWith('ms:')?'<div class="small-note" style="padding:8px">Assign milestones from task details.</div>':'<button data-graph-action="unlink">Remove dependency</button>';}
+    else if(node){menu.innerHTML=node.dataset.node.startsWith('ms:')?'<button data-graph-action="edit-ms">Edit milestone</button>':'<button data-graph-action="edit">Edit task</button><button data-graph-action="subtask">Add subtask</button><button data-graph-action="child">New dependent task</button>'+projectSettings.statuses.map(st=>`<button data-graph-status="${html(st.id)}">Move to ${html(st.label)}</button>`).join('')+'<div class="separator"></div><button data-graph-action="trash">Move to Trash</button>';}
+    else menu.innerHTML='<button data-graph-action="new">+ New task here</button><button data-graph-action="new-ms">✦ New milestone</button><button data-graph-action="bulk">Bulk paste</button><div class="separator"></div><button data-graph-action="arrange">Auto arrange</button>';
+    menu.classList.remove('hidden');const x=Math.max(6,Math.min(clientX-r.left,area.clientWidth-menu.offsetWidth-6)),y=Math.max(6,Math.min(clientY-r.top,area.clientHeight-menu.offsetHeight-6));menu.style.left=x+'px';menu.style.top=y+'px';
   }
-
   // Navigation and form events
 
   // Supabase shared mode. Local mode remains available even without Internet.
@@ -1178,10 +1435,11 @@ System testing | Sam | Testing | Assemble prototype`;
   }
   async function reloadCloudWorkspace(id){
     const {data,error}=await cloudDb.from('taskgraph_workspaces')
-      .select('id,name,invite_code,tasks,revision').eq('id',id).single();
+      .select('id,name,invite_code,tasks,settings,revision').eq('id',id).single();
     if(error)throw error;
     if(cloudWorkspace?.id!==id)return;
     if(Number(data.revision)<cloudRevision)return;
+    setSettings(data.settings);
     const clean=validate(data.tasks);
     cloudWorkspace={id:data.id,name:data.name,invite_code:data.invite_code};
     tasks=clean;cloudRevision=Number(data.revision);
@@ -1256,8 +1514,36 @@ System testing | Sam | Testing | Assemble prototype`;
   }
   el('navBoard').addEventListener('click',()=>showView('board'));
   el('navGraph').addEventListener('click',()=>showView('graph'));
+  el('navProgress').addEventListener('click',()=>showView('progress'));
+  el('newMilestoneBtn').addEventListener('click',()=>milestoneEditor());
+  el('configureStatuses').addEventListener('click',openStatuses);
+  el('showTrashBtn').addEventListener('click',showTrash);
   el('otherViewBtn').addEventListener('click',()=>showView(view==='board'?'graph':'board'));
   el('addBtn').addEventListener('click',()=>openDrawer());
+  el('addSubtaskBtn').addEventListener('click',addQuickSubtask);
+  el('quickSubtaskTitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addQuickSubtask();}});
+  el('subtaskList').addEventListener('click',e=>{const id=e.target.closest('[data-edit-subtask]')?.dataset.editSubtask;if(id)openDrawer(id);});
+  el('studioClose').addEventListener('click',closeStudio);
+  el('studioCancel').addEventListener('click',closeStudio);
+  el('studioSave').addEventListener('click',()=>studioAction?.());
+  el('studioModalBody').addEventListener('input',e=>{
+    const row=e.target.closest('[data-status-index]'),prop=e.target.dataset.statusProp;if(!row||!prop)return;
+    const i=Number(row.dataset.statusIndex);workingStatuses[i][prop]=e.target.value;
+  });
+  el('studioModalBody').addEventListener('change',e=>{const row=e.target.closest('[data-status-index]'),prop=e.target.dataset.statusProp;if(row&&prop)workingStatuses[Number(row.dataset.statusIndex)][prop]=e.target.value;});
+  el('studioModalBody').addEventListener('click',e=>{
+    if(e.target.id==='addStatusRow'){workingStatuses.push({id:'custom-'+uniqueId().slice(0,8).toLowerCase(),label:'New status',color:'#8484cc',behavior:'queued'});rerenderStatusEditor();return;}
+    const row=e.target.closest('[data-status-index]');if(row){const idx=Number(row.dataset.statusIndex);
+      if(e.target.closest('[data-remove-status]')){workingStatuses.splice(idx,1);rerenderStatusEditor();return;}
+      const direction=e.target.closest('[data-order]')?.dataset.order;
+      if(direction){const target=idx+(direction==='up'?-1:1);if(target>=0&&target<workingStatuses.length){[workingStatuses[idx],workingStatuses[target]]=[workingStatuses[target],workingStatuses[idx]];rerenderStatusEditor();}return;}
+    }
+    const restore=e.target.closest('[data-restore]')?.dataset.restore,erase=e.target.closest('[data-erase]')?.dataset.erase;
+    if(restore){restoreTask(restore);return;}
+    if(erase&&confirm('Permanently delete this task and all its subtasks?')){permanentlyDelete(erase);save();render();showTrash();return;}
+    if(e.target.id==='deleteMilestoneBtn' && editingMilestone && confirm('Delete this milestone? Its tasks will remain.')){projectSettings.milestones=projectSettings.milestones.filter(m=>m.id!==editingMilestone);tasks.forEach(t=>{if(t.milestoneId===editingMilestone)t.milestoneId='';});save();render();closeStudio();}
+  });
+  el('progressContent').addEventListener('click',e=>{if(e.target.closest('[data-new-milestone]'))return milestoneEditor();const milestone=e.target.closest('[data-milestone-edit]')?.dataset.milestoneEdit;if(milestone)return milestoneEditor(milestone);const task=e.target.closest('[data-open-task]')?.dataset.openTask;if(task)openDrawer(task);});
   el('quickAddBtn').addEventListener('click',openBulk);
   el('collabBtn').addEventListener('click',openCollab);
   el('closeCollab').addEventListener('click',closeCollab);
@@ -1278,8 +1564,9 @@ System testing | Sam | Testing | Assemble prototype`;
     try{
       const draft=localStorage.getItem('taskgraph_unsaved_shared_draft_v1');
       if(!draft)return setCloudMessage('No unsaved draft is stored in this browser.');
-      const records=validate(JSON.parse(draft));
-      const blob=new Blob([JSON.stringify({app:'TaskGraph',version:1,tasks:records},null,2)],{type:'application/json'});
+      const recovered=JSON.parse(draft);
+      const records=validate(recovered);
+      const blob=new Blob([JSON.stringify({app:'TaskGraph',version:3,tasks:records,settings:recovered.settings||projectSettings},null,2)],{type:'application/json'});
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');a.href=url;a.download='taskgraph-unsaved-draft.json';document.body.appendChild(a);a.click();a.remove();
       setTimeout(()=>URL.revokeObjectURL(url),1500);
@@ -1298,7 +1585,7 @@ System testing | Sam | Testing | Assemble prototype`;
     if((e.ctrlKey||e.metaKey)&&e.key==='Enter'&&!el('submitBulk').disabled){e.preventDefault();submitBulk();}
   });
   el('bulkExample').addEventListener('click',()=>{el('bulkInput').value=QUICK_EXAMPLE;updateBulkPreview();el('bulkInput').focus();});
-  el('overlay').addEventListener('click',()=>{if(el('collabModal').classList.contains('visible'))closeCollab();else if(el('bulkModal').classList.contains('visible'))closeBulk();else closeDrawer();});
+  el('overlay').addEventListener('click',()=>{if(el('studioModal').classList.contains('visible'))closeStudio();else if(el('collabModal').classList.contains('visible'))closeCollab();else if(el('bulkModal').classList.contains('visible'))closeBulk();else closeDrawer();});
   el('closeDrawer').addEventListener('click',closeDrawer);
   el('cancelTask').addEventListener('click',closeDrawer);
   el('taskForm').addEventListener('submit',submitTask);
@@ -1309,10 +1596,19 @@ System testing | Sam | Testing | Assemble prototype`;
   el('fileInput').addEventListener('change',e=>importData(e.target.files[0]));
   el('sampleBtn').addEventListener('click',sampleProject);
   el('clearBtn').addEventListener('click',clearAll);
+  el('boardContent').addEventListener('input',e=>{const c=e.target.dataset.filterColumn,k=e.target.dataset.filterKey;if(!c||!k)return;(boardPrefs[c]??={filter:'all',sort:'oldest',search:''})[k]=e.target.value;if(k==='search'){
+      const pos=e.target.selectionStart??e.target.value.length;
+      renderBoard();
+      const input=[...el('boardContent').querySelectorAll('input[data-filter-key="search"]')].find(n=>n.dataset.filterColumn===c);
+      if(input){input.focus();input.setSelectionRange(pos,pos);}
+    }else renderBoard();});
+  el('boardContent').addEventListener('change',e=>{const c=e.target.dataset.filterColumn,k=e.target.dataset.filterKey;if(!c||!k)return;(boardPrefs[c]??={filter:'all',sort:'oldest',search:''})[k]=e.target.value;renderBoard();});
+  el('boardContent').addEventListener('focusout',e=>{if(e.target.dataset.filterKey==='search')renderBoard();});
   el('boardContent').addEventListener('click',e=>{
     if(e.target.closest('[data-create]')){openDrawer();return;}
     if(e.target.closest('[data-bulk]')){openBulk();return;}
     if(e.target.closest('[data-sample]')){sampleProject();return;}
+    if(e.target.closest('[data-filter-column]'))return;
     const card=e.target.closest('.task-card');if(card)openDrawer(card.dataset.id);
   });
   el('boardContent').addEventListener('keydown',e=>{
@@ -1340,12 +1636,16 @@ System testing | Sam | Testing | Assemble prototype`;
     document.querySelectorAll('.drag-over').forEach(node=>node.classList.remove('drag-over'));
     moveTask(id,col.dataset.status);dragId=null;
   });
+  el('trashDrop').addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';el('trashDrop').classList.add('drag-over');});
+  el('trashDrop').addEventListener('dragleave',()=>el('trashDrop').classList.remove('drag-over'));
+  el('trashDrop').addEventListener('drop',e=>{e.preventDefault();el('trashDrop').classList.remove('drag-over');const id=dragId||e.dataTransfer.getData('text/plain');if(id)trashTask(id);dragId=null;});
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape') {hideGraphContext();el('appearancePanel').classList.add('hidden');el('appearanceBtn').setAttribute('aria-expanded','false');}
-    if(e.key==='Escape'&&el('collabModal').classList.contains('visible'))closeCollab();
+    if(e.key==='Escape'&&el('studioModal').classList.contains('visible'))closeStudio();
+    else if(e.key==='Escape'&&el('collabModal').classList.contains('visible'))closeCollab();
     else if(e.key==='Escape'&&el('bulkModal').classList.contains('visible'))closeBulk();
     else if(e.key==='Escape'&&el('drawer').classList.contains('visible'))closeDrawer();
-    if(e.key.toLowerCase()==='n'&&!el('drawer').classList.contains('visible')&&!el('bulkModal').classList.contains('visible')&&!el('collabModal').classList.contains('visible')&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName))openDrawer();
+    if(e.key.toLowerCase()==='n'&&!el('studioModal').classList.contains('visible')&&!el('drawer').classList.contains('visible')&&!el('bulkModal').classList.contains('visible')&&!el('collabModal').classList.contains('visible')&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName))openDrawer();
   });
 
   // Edit graph directly: pan, move nodes, draw arrows, context actions.
@@ -1359,7 +1659,8 @@ System testing | Sam | Testing | Assemble prototype`;
   svg.addEventListener('pointerdown',e=>{
     if(e.button!==0)return;
     hideGraphContext();
-    const node=e.target.closest('.graph-node'),port=e.target.closest('.graph-port');
+    const node=e.target.closest('.graph-node'),port=e.target.closest('.graph-port'),sub=e.target.closest('[data-subtask]');
+    if(sub){e.preventDefault();openDrawer(sub.dataset.subtask);return;}
     if(port?.dataset.port==='out'){
       const from=node.dataset.node;
       pointer={id:e.pointerId,mode:'link',from};
@@ -1408,10 +1709,10 @@ System testing | Sam | Testing | Assemble prototype`;
     }else if(done.mode==='node'){
       cancelPointer();ignoreGraphClick=true;
       if(done.moved){
-        const p=graphPositions.get(done.nodeId),task=getTask(done.nodeId);
+        const p=graphPositions.get(done.nodeId),task=done.nodeId.startsWith('ms:')?projectSettings.milestones.find(m=>m.id===done.nodeId.slice(3)):getTask(done.nodeId);
         if(task){task.graphPositions??={};task.graphPositions[graphDirection]={x:p.x,y:p.y};save();}
         renderGraph(false);
-      }else openDrawer(done.nodeId);
+      }else if(done.nodeId.startsWith('ms:'))milestoneEditor(done.nodeId.slice(3));else openDrawer(done.nodeId);
     }else{
       cancelPointer();ignoreGraphClick=done.moved;
     }
@@ -1421,23 +1722,21 @@ System testing | Sam | Testing | Assemble prototype`;
   svg.addEventListener('wheel',e=>{e.preventDefault();hideGraphContext();zoomGraph(e.deltaY<0?1.12:1/1.12,e.clientX,e.clientY);},{passive:false});
   svg.addEventListener('click',e=>{if(ignoreGraphClick){ignoreGraphClick=false;return;}});
   svg.addEventListener('keydown',e=>{
-    if((e.key==='Enter'||e.key===' ')&&e.target.closest('.graph-node')){e.preventDefault();openDrawer(e.target.closest('.graph-node').dataset.node);}
+    if((e.key==='Enter'||e.key===' ')&&e.target.closest('.graph-node')){e.preventDefault();const id=e.target.closest('.graph-node').dataset.node;id.startsWith('ms:')?milestoneEditor(id.slice(3)):openDrawer(id);}
   });
   svg.addEventListener('contextmenu',e=>{e.preventDefault();cancelPointer();graphContext(e.clientX,e.clientY,e.target);});
   el('graphContext').addEventListener('click',e=>{
+    const status=e.target.closest('[data-graph-status]')?.dataset.graphStatus;
     const action=e.target.closest('[data-graph-action]')?.dataset.graphAction;
-    if(!action||!contextData)return;
-    const c=contextData;hideGraphContext();
+    if(!contextData)return;const c=contextData;hideGraphContext();
+    if(status){moveTask(c.nodeId,status);return;}
     if(action==='new')openDrawer(null,{position:c.position});
-    else if(action==='child'){
-      const p=graphPositions.get(c.nodeId),pos=graphDirection==='vertical'?{x:p.x,y:p.y+205}:{x:p.x+316,y:p.y};
-      openDrawer(null,{position:pos,dependency:c.nodeId});
-    }
+    else if(action==='new-ms')milestoneEditor();
+    else if(action==='edit-ms')milestoneEditor(c.nodeId.slice(3));
+    else if(action==='child'){const p=graphPositions.get(c.nodeId);openDrawer(null,{position:graphDirection==='vertical'?{x:p.x,y:p.y+245}:{x:p.x+345,y:p.y},dependency:c.nodeId});}
+    else if(action==='subtask')openDrawer(null,{parentId:c.nodeId});
     else if(action==='edit')openDrawer(c.nodeId);
-    else if(action==='complete')moveTask(c.nodeId,'completed');
-    else if(action==='hold')moveTask(c.nodeId,'on-hold');
-    else if(action==='todo')moveTask(c.nodeId,'todo');
-    else if(action==='delete'){openDrawer(c.nodeId);deleteTask();}
+    else if(action==='trash')trashTask(c.nodeId);
     else if(action==='unlink')removeGraphDependency(c.edgeFrom,c.edgeTo);
     else if(action==='bulk')openBulk();
     else if(action==='arrange')resetLayout();
