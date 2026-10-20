@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>TaskGraph — Visual Task &amp; Dependency Studio</title>
+  <style>
+    :root {
+      --bg:#f6f7fb; --surface:#fff; --ink:#1d2940; --muted:#718097;
+      --border:#e2e7f0; --purple:#6058c9; --purple-light:#efeeff;
+      --nav:#14203a; --nav-sub:#9aa8c3; --ready:#357bcc; --ready-light:#eaf3ff;
+      --hold:#bb8127; --hold-light:#fff4df; --done:#23936c; --done-light:#e5f7ef;
+      --blocked:#7c8799; --blocked-light:#f0f2f6;
+      --shadow:0 13px 35px rgba(23,36,65,.09);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--bg); }
+    button,input,textarea,select { font:inherit; }
+    button { cursor:pointer; }
+    .app { display:flex; min-height:100vh; }
+    .sidebar { width:242px; flex:none; min-height:100vh; background:var(--nav); color:#fff; padding:27px 16px; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; }
+    .brand { display:flex; align-items:center; gap:12px; padding:0 10px 37px; font-size:19px; font-weight:780; letter-spacing:-.7px; }
+    .brand-mark { width:36px; height:36px; display:grid; place-items:center; border-radius:11px; background:linear-gradient(135deg,#837cf0,#4b8de5); }
+    .brand-mark svg { width:23px; height:23px; }
+    .nav-label { color:#798aa7; font-size:10px; font-weight:800; letter-spacing:2px; padding:0 14px; margin:5px 0 12px; }
+    .nav-btn { display:flex; gap:12px; align-items:center; width:100%; color:var(--nav-sub); font-weight:610; padding:12px 14px; border:0; background:transparent; border-radius:11px; margin:2px 0; text-align:left; }
+    .nav-btn svg { flex:none; }
+    .nav-btn:hover { background:#253351; color:#fff; }
+    .nav-btn.active { background:#303b69; color:#fff; }
+    .nav-btn.active svg { color:#aaa8ff; }
+    .nav-bottom { margin-top:auto; padding-top:19px; border-top:1px solid #2d3955; }
+    .nav-bottom .nav-btn { font-size:13px; }
+    .sidebar-tip { margin:18px 5px 5px; border:1px solid #33435f; padding:13px; border-radius:12px; background:#1b2943; font-size:11px; color:#a9b6ce; line-height:1.55; }
+    .sidebar-tip strong { display:block; font-size:12px; color:#eff2fa; margin-bottom:5px; }
+    .content { flex:1; min-width:0; }
+    .page { padding:35px clamp(18px,3.6vw,55px) 42px; max-width:1900px; margin:0 auto; }
+    .topbar { display:flex; justify-content:space-between; gap:15px; align-items:center; margin-bottom:27px; }
+    .eyebrow { font-size:10px; font-weight:830; color:#929db0; letter-spacing:2.2px; margin-bottom:8px; }
+    h1 { font-size:clamp(25px,2.45vw,33px); letter-spacing:-1.2px; margin:0; line-height:1.15; }
+    .subtitle { margin-top:7px; font-size:13px; color:var(--muted); }
+    .top-actions { display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
+    .btn { border:1px solid var(--border); border-radius:10px; padding:10px 14px; font-size:12px; font-weight:740; white-space:nowrap; display:inline-flex; align-items:center; justify-content:center; gap:7px; background:#fff; color:var(--ink); transition:all .16s; }
+    .btn:hover { border-color:#adb7d2; background:#f8f9fd; }
+    .btn:focus-visible,.nav-btn:focus-visible,.task-card:focus-visible { outline:3px solid #aaa6ff; outline-offset:2px; }
+    .btn.primary { color:#fff; border-color:var(--purple); background:var(--purple); box-shadow:0 4px 11px #6058c929; }
+    .btn.primary:hover { background:#5047b7; }
+    .btn.danger { color:#ad3547; border-color:#f2cdd4; }
+    .btn.small { padding:8px 10px; }
+    .btn.icon { padding:9px; width:35px; height:35px; }
+    .btn svg { width:15px; height:15px; }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:24px; }
+    .metric { background:#fff; border:1px solid var(--border); border-radius:13px; padding:19px 20px; display:flex; align-items:center; justify-content:space-between; }
+    .metric-label { font-size:12px; color:#7a889d; font-weight:650; margin-bottom:7px; }
+    .metric-number { font-size:26px; font-weight:790; letter-spacing:-1px; line-height:1; }
+    .metric-dot { width:38px; height:38px; display:grid; place-items:center; border-radius:12px; }
+    .metric-dot svg { width:19px; height:19px; }
+    .metric-dot.ready { color:var(--ready); background:var(--ready-light); }
+    .metric-dot.blocked { color:var(--blocked); background:var(--blocked-light); }
+    .metric-dot.hold { color:var(--hold); background:var(--hold-light); }
+    .metric-dot.done { color:var(--done); background:var(--done-light); }
+    .work-panel { background:var(--surface); border:1px solid var(--border); border-radius:15px; min-height:570px; overflow:hidden; box-shadow:0 4px 24px rgba(30,39,72,.025); }
+    .panel-toolbar { border-bottom:1px solid var(--border); padding:18px 22px; display:flex; justify-content:space-between; align-items:center; gap:15px; flex-wrap:wrap; }
+    .panel-title { font-size:15px; font-weight:770; letter-spacing:-.3px; }
+    .panel-hint { font-size:11px; color:#8692a5; margin-top:4px; }
+    .panel-tools { display:flex; align-items:center; gap:8px; }
+    .search { border:1px solid var(--border); background:#fbfcfe; border-radius:9px; color:var(--ink); width:220px; padding:10px 12px; outline:none; font-size:12px; }
+    .search:focus { border-color:#aaa6ff; box-shadow:0 0 0 3px #efeeff; }
+    .board { display:grid; grid-template-columns:repeat(3,minmax(225px,1fr)); gap:15px; padding:18px; align-items:start; }
+    .board-column { background:#f7f8fb; border:1px solid #edf0f5; border-radius:12px; min-height:425px; padding:15px 12px; transition:background .15s,border-color .15s; }
+    .board-column.drag-over { background:#eff0ff; border:2px dashed #8881e9; padding:14px 11px; }
+    .column-heading { display:flex; align-items:center; justify-content:space-between; margin:1px 3px 17px; }
+    .column-title { font-size:13px; font-weight:780; display:flex; align-items:center; gap:9px; }
+    .column-title i { width:9px; height:9px; border-radius:50%; background:var(--ready); }
+    .board-column[data-status="on-hold"] .column-title i { background:var(--hold); }
+    .board-column[data-status="completed"] .column-title i { background:var(--done); }
+    .count { background:#e9edf4; color:#738098; font-weight:740; font-size:11px; border-radius:6px; padding:3px 8px; }
+    .task-list { min-height:325px; display:flex; flex-direction:column; gap:10px; }
+    .task-card { background:#fff; border:1px solid #e2e7ee; border-radius:10px; padding:15px; box-shadow:0 2px 5px rgba(34,50,83,.025); cursor:grab; transition:transform .12s,border-color .12s,box-shadow .12s; }
+    .task-card:hover { border-color:#c7c9eb; transform:translateY(-1px); box-shadow:0 7px 16px #202d4510; }
+    .task-card:active { cursor:grabbing; }
+    .task-card.dragging { opacity:.4; }
+    .task-card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:5px; }
+    .task-card h3 { font-size:13px; margin:0 0 10px; line-height:1.45; font-weight:760; overflow-wrap:anywhere; }
+    .subdetail { font-size:11px; color:#8390a3; margin:0 0 11px; min-height:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:15px; }
+    .tag { display:inline-block; border-radius:6px; padding:4px 7px; font-size:10px; font-weight:760; }
+    .tag.ready { background:var(--ready-light); color:var(--ready); }
+    .tag.blocked { background:var(--blocked-light); color:#68768b; }
+    .tag.hold { background:var(--hold-light); color:var(--hold); }
+    .tag.done { background:var(--done-light); color:var(--done); }
+    .tag.dep { background:#f2f0fd; color:#7068b7; }
+    .card-footer { border-top:1px solid #eff1f5; display:flex; align-items:center; justify-content:space-between; padding-top:11px; gap:7px; }
+    .avatar { width:24px; height:24px; background:#e9e6fc; color:#6157ae; border-radius:50%; display:inline-grid; place-items:center; font-weight:780; font-size:10px; flex:none; }
+    .avatar.empty { background:#f1f3f8; color:#a0aabd; }
+    .assignee { display:flex; align-items:center; gap:7px; color:#64728a; font-size:11px; min-width:0; }
+    .assignee span:last-child { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .milestone { font-size:10px; color:#838fa1; max-width:47%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .column-empty { display:flex; align-items:center; justify-content:center; text-align:center; padding:28px 15px; border:1px dashed #d9e0ea; color:#9aa5b6; border-radius:9px; font-size:12px; line-height:1.6; margin-top:3px; }
+    .zero-state { display:flex; flex-direction:column; align-items:center; text-align:center; justify-content:center; padding:92px 20px; }
+    .zero-mark { width:68px; height:68px; border-radius:20px; background:var(--purple-light); color:var(--purple); display:grid; place-items:center; margin-bottom:19px; }
+    .zero-mark svg { width:34px; height:34px; }
+    .zero-state h2 { font-size:18px; letter-spacing:-.4px; margin:0 0 8px; }
+    .zero-state p { margin:0 0 18px; color:var(--muted); font-size:13px; max-width:390px; line-height:1.6; }
+    .zero-actions { display:flex; gap:9px; justify-content:center; flex-wrap:wrap; }
+    .graph-area { position:relative; height:min(72vh,770px); min-height:510px; background-color:#fcfdff; background-image:radial-gradient(#dce3f0 .8px,transparent .8px); background-size:20px 20px; overflow:hidden; }
+    .graph-area svg { width:100%; height:100%; display:block; touch-action:none; cursor:grab; user-select:none; }
+    .graph-area svg.panning { cursor:grabbing; }
+    .graph-area .graph-node { cursor:pointer; }
+    .graph-controls { position:absolute; right:16px; top:16px; display:flex; flex-direction:column; gap:5px; background:#fff; border:1px solid var(--border); border-radius:11px; padding:6px; box-shadow:var(--shadow); }
+    .graph-controls .btn { width:34px; height:34px; border:0; padding:5px; font-size:14px; }
+    .graph-controls .btn:hover { background:#f1f2fa; }
+    .graph-legend { position:absolute; bottom:16px; left:16px; background:#fffffff0; border:1px solid var(--border); border-radius:9px; padding:11px 13px; display:flex; gap:15px; flex-wrap:wrap; color:#708096; font-size:10px; font-weight:650; box-shadow:0 3px 12px #1b35510b; }
+    .graph-legend span { display:flex; align-items:center; gap:6px; }
+    .graph-legend i { width:8px; height:8px; border-radius:50%; }
+    .graph-guide { position:absolute; left:17px; top:16px; font-size:11px; background:#fff; color:#8591a4; padding:9px 12px; border:1px solid var(--border); border-radius:8px; pointer-events:none; }
+    .graph-empty { position:absolute; inset:0; display:flex; justify-content:center; align-items:center; pointer-events:none; }
+    .graph-empty .zero-state { pointer-events:auto; background:#ffffffea; border-radius:13px; }
+    .graph-empty.hidden { display:none; }
+    .hidden { display:none!important; }
+    .overlay { position:fixed; inset:0; background:#14203a6e; z-index:20; opacity:0; pointer-events:none; transition:opacity .2s; }
+    .overlay.visible { opacity:1; pointer-events:auto; }
+    .drawer { position:fixed; right:0; top:0; bottom:0; width:min(445px,100vw); background:white; z-index:21; box-shadow:-15px 0 65px #121c3b2d; transform:translateX(103%); transition:transform .22s; display:flex; flex-direction:column; }
+    .drawer.visible { transform:translateX(0); }
+    .drawer-head { padding:24px 26px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .drawer-head strong { font-size:20px; letter-spacing:-.6px; }
+    .close { background:none; border:0; font-size:25px; color:#8994a8; padding:0 4px; }
+    .drawer-body { overflow-y:auto; padding:25px 26px; flex:1; }
+    .field { margin-bottom:19px; }
+    .field label,.field-label { display:block; font-size:12px; color:#43506a; font-weight:730; margin:0 0 8px; }
+    .field input,.field textarea,.field select { border:1px solid #dce3ed; width:100%; border-radius:9px; padding:11px 12px; color:var(--ink); background:#fff; font-size:13px; outline:0; }
+    .field textarea { resize:vertical; min-height:94px; line-height:1.5; }
+    .field input:focus,.field textarea:focus,.field select:focus { border-color:#aaa6ff; box-shadow:0 0 0 3px #f0efff; }
+    .field small { display:block; color:#8995a7; line-height:1.5; font-size:11px; margin-top:7px; }
+    .two-fields { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+    .dep-section { background:#f9faff; border:1px solid #e7eaf4; border-radius:10px; padding:14px; margin-bottom:10px; }
+    .dep-list { max-height:223px; overflow:auto; margin-top:12px; display:flex; flex-direction:column; gap:5px; }
+    .dep-choice { display:flex; gap:9px; align-items:flex-start; padding:9px; border-radius:8px; font-size:12px; cursor:pointer; }
+    .dep-choice:hover { background:#eeeffb; }
+    .dep-choice input { accent-color:var(--purple); margin-top:2px; }
+    .dep-choice-text { flex:1; min-width:0; }
+    .dep-choice-text strong { display:block; font-weight:700; overflow-wrap:anywhere; }
+    .dep-choice-text small { color:#8290a4; display:block; margin-top:3px; }
+    .drawer-foot { border-top:1px solid var(--border); padding:16px 26px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .drawer-foot-right { display:flex; gap:8px; margin-left:auto; }
+    .error { font-size:12px; color:#be3048; padding:9px 11px; border:1px solid #f3c9d0; border-radius:8px; background:#fff5f6; margin-bottom:12px; }
+    .bulk-modal { position:fixed; z-index:22; top:50%; left:50%; transform:translate(-50%,-47%); opacity:0; pointer-events:none; width:min(850px,calc(100vw - 24px)); max-height:min(90vh,880px); background:#fff; border-radius:16px; box-shadow:0 25px 85px #14203a43; display:flex; flex-direction:column; transition:transform .18s,opacity .18s; }
+    .bulk-modal.visible { opacity:1; pointer-events:auto; transform:translate(-50%,-50%); }
+    .bulk-head { padding:20px 25px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .bulk-head strong { font-size:20px; letter-spacing:-.5px; }
+    .bulk-body { overflow:auto; padding:22px 25px 12px; }
+    .bulk-body p { font-size:12px; color:#74839a; line-height:1.7; margin:0 0 12px; }
+    .bulk-body code { background:#f3f2fa; color:#5142a5; padding:2px 4px; border-radius:4px; }
+    .bulk-body textarea { display:block; width:100%; min-height:250px; border:1px solid #dce3ed; border-radius:9px; padding:13px 15px; line-height:1.6; resize:vertical; font:13px ui-monospace,SFMono-Regular,Consolas,monospace; color:#28334b; outline:0; }
+    .bulk-body textarea:focus { border-color:#aaa6ff; box-shadow:0 0 0 3px #f0efff; }
+    .bulk-preview { font-size:12px; line-height:1.65; border:1px solid #e6eaf2; padding:12px 15px; background:#f9faff; border-radius:9px; margin:13px 0; max-height:160px; overflow-y:auto; }
+    .bulk-preview.error-preview { background:#fff6f6; border-color:#f4cbd3; color:#9f3348; }
+    .bulk-example { border:0; background:none; padding:0; font-size:12px; font-weight:750; color:var(--purple); text-decoration:underline; cursor:pointer; }
+    .bulk-footer { border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; padding:16px 25px; gap:12px; flex-wrap:wrap; }
+    .bulk-footer .small-note { font-size:11px; color:#7a879a; }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translate(-50%,18px); z-index:30; background:#1e2b43; color:#fff; padding:12px 17px; border-radius:10px; font-size:12px; box-shadow:0 15px 35px #1c29433d; opacity:0; pointer-events:none; transition:.2s; }
+    .toast.show { transform:translate(-50%,0); opacity:1; }
+    @media(max-width:1020px) { .sidebar{width:70px;padding:24px 9px;} .brand{padding:0 7px 30px;} .brand-word,.nav-label,.nav-btn span,.sidebar-tip {display:none;} .nav-btn{justify-content:center;padding:13px;} .metrics{gap:8px;} .metric{padding:15px;} .board{overflow-x:auto;grid-template-columns:repeat(3,minmax(250px,1fr));} }
+    @media(max-width:680px) { .sidebar{width:55px;padding:18px 5px;} .brand{padding:0 4px 28px;} .brand-mark{width:35px;} .page{padding:20px 13px;} .topbar{align-items:flex-start;flex-direction:column;} .metrics{grid-template-columns:repeat(2,1fr);} .metric-number{font-size:23px;} .panel-toolbar{padding:15px;align-items:flex-start;} .search{width:170px;} .graph-area{min-height:530px;} .graph-guide{font-size:10px;max-width:63%;} .graph-legend{max-width:calc(100% - 30px);} .two-fields{grid-template-columns:1fr;} }
+
+    .collab-modal { position:fixed; z-index:24; width:min(650px,calc(100vw - 26px)); max-height:min(88vh,850px); top:50%; left:50%; transform:translate(-50%,-47%); background:#fff; border-radius:16px; box-shadow:0 30px 85px #0d1a3060; display:none; flex-direction:column; overflow:hidden; }
+    .collab-modal.visible { display:flex; transform:translate(-50%,-50%); }
+    .collab-head {display:flex; justify-content:space-between; align-items:center; padding:18px 23px; border-bottom:1px solid var(--border); }
+    .collab-body { overflow-y:auto; padding:19px 23px 24px; }
+    .collab-section {border:1px solid #e4e8f0; padding:15px; border-radius:12px; margin:0 0 12px; }
+    .collab-section h3 {font-size:13px;margin:0 0 9px;}
+    .collab-section p {font-size:12px; line-height:1.55; color:#74839a; margin:0 0 12px;}
+    .collab-row { display:flex; gap:8px; flex-wrap:wrap; align-items:end; }
+    .collab-row .field { flex:1 1 140px; margin-bottom:10px; }
+    .collab-row input { width:100%; }
+    .collab-row button {margin-bottom:10px;}
+    .collab-workspaces {display:flex; flex-wrap:wrap; gap:7px; margin:10px 0;}
+    .collab-workspaces button {white-space:normal; text-align:left;}
+    .collab-message {color:#677893;font-size:12px;line-height:1.5; margin-top:8px;white-space:pre-line;}
+    .collab-message.error {color:#b12e48;}
+    .cloud-pill { font-size:11px; color:#6c7790; background:#eef1f7; border-radius:30px; padding:7px 10px; font-weight:760; }
+    .cloud-pill.shared {background:#e7f6ef;color:#16835e;}
+    .invite-code { width:100%; background:#f5f6fa; padding:11px; border:1px solid #e2e7f0; border-radius:8px; font:12px ui-monospace,Consolas,monospace; word-break:break-all; }
+    .collab-section .btn {margin-top:3px;}
+    .collab-section input {font-size:12px;}
+
+    /* Appearance system. All workspace surfaces, dialogs and graph elements follow the selected theme. */
+    body[data-theme="forest"] {
+      --bg:#f2f4ee; --surface:#fffffa; --ink:#24392c; --muted:#6f826e;
+      --border:#d8e1d2; --purple:#427c64; --purple-light:#e5efe7;
+      --nav:#213c32; --nav-sub:#b0c9b6; --ready:#4382a0; --ready-light:#e6f2f6;
+      --hold:#b07b35; --hold-light:#fbf1dc; --done:#40845c; --done-light:#e6f4e8;
+      --blocked:#7e897c; --blocked-light:#edf1e8;
+    }
+    body[data-theme="midnight"] {
+      color-scheme:dark;
+      --bg:#0b1220; --surface:#131e30; --ink:#e9effb; --muted:#97a8c0;
+      --border:#2b3b53; --purple:#9b9cf8; --purple-light:#2b315c;
+      --nav:#0a1120; --nav-sub:#9cb0cc; --ready:#79b6ff; --ready-light:#1b3550;
+      --hold:#e4b161; --hold-light:#403321; --done:#63cca1; --done-light:#184137;
+      --blocked:#9eabc0; --blocked-light:#2a3444;
+      --shadow:0 18px 45px rgba(0,0,0,.35);
+    }
+    body[data-theme="midnight"] .metric,
+    body[data-theme="midnight"] .work-panel,
+    body[data-theme="midnight"] .task-card,
+    body[data-theme="midnight"] .drawer,
+    body[data-theme="midnight"] .bulk-modal,
+    body[data-theme="midnight"] .collab-modal,
+    body[data-theme="midnight"] .appearance-panel,
+    body[data-theme="midnight"] .graph-context { background:var(--surface); color:var(--ink); border-color:var(--border); }
+    body[data-theme="midnight"] .board-column { background:#101929; border-color:var(--border); }
+    body[data-theme="midnight"] .task-card:hover { background:#1a2940; border-color:#61739e; }
+    body[data-theme="midnight"] .nav-btn:hover { background:#202d45; }
+    body[data-theme="midnight"] .nav-btn.active { background:#282f58; }
+    body[data-theme="midnight"] .column-empty,
+    body[data-theme="midnight"] .dep-section,
+    body[data-theme="midnight"] .bulk-preview,
+    body[data-theme="midnight"] .collab-section,
+    body[data-theme="midnight"] .invite-code,
+    body[data-theme="midnight"] .graph-legend,
+    body[data-theme="midnight"] .graph-guide,
+    body[data-theme="midnight"] .graph-controls { background:#172238; border-color:var(--border); color:var(--muted); }
+    body[data-theme="midnight"] .field input,
+    body[data-theme="midnight"] .field textarea,
+    body[data-theme="midnight"] .field select,
+    body[data-theme="midnight"] .bulk-body textarea,
+    body[data-theme="midnight"] .search,
+    body[data-theme="midnight"] .btn:not(.primary),
+    body[data-theme="midnight"] .appearance-control { background:#1b2940; border-color:#354862; color:var(--ink); }
+    body[data-theme="midnight"] .btn:hover:not(.primary),body[data-theme="midnight"] .graph-context button:hover { background:#2b3c54; }
+    body[data-theme="midnight"] .field label,
+    body[data-theme="midnight"] .field-label,
+    body[data-theme="midnight"] .task-card h3,
+    body[data-theme="midnight"] .dep-choice strong { color:var(--ink); }
+    body[data-theme="midnight"] .subdetail,
+    body[data-theme="midnight"] .assignee,
+    body[data-theme="midnight"] .milestone,
+    body[data-theme="midnight"] .panel-hint,
+    body[data-theme="midnight"] .metric-label,
+    body[data-theme="midnight"] .graph-guide,
+    body[data-theme="midnight"] .sidebar-tip { color:var(--muted); }
+    body[data-theme="midnight"] .sidebar-tip { background:#131e30; border-color:#2a3b54; }
+    body[data-theme="midnight"] .tag.dep { background:#312a56;color:#c5b6ff; }
+    body[data-theme="midnight"] .card-footer { border-color:#2c3950; }
+    body[data-theme="midnight"] .count { background:#25334b;color:#b2c0d4; }
+    body[data-theme="midnight"] .graph-area {background-color:#0d1728;background-image:radial-gradient(#34445f .9px,transparent .9px);}
+    body[data-theme="midnight"] .bulk-body code { background:#2c3553;color:#cecbff; }
+    body[data-theme="midnight"] .bulk-preview span { color:#b6c4d8!important; }
+    body[data-theme="midnight"] .zero-state h2 { color:var(--ink); }
+    body[data-theme="midnight"] .graph-empty .zero-state { background:#172238ee; }
+    body[data-theme="forest"] .board-column {background:#edf1e9;border-color:#dde7d8;}
+    body[data-theme="forest"] .btn.primary {color:white;box-shadow:0 4px 14px #34634b35;}
+    body[data-theme="forest"] .graph-area {background-color:#f7faf5;background-image:radial-gradient(#cfdbce .9px,transparent .9px);}
+    body[data-theme="forest"] .brand-mark {background:linear-gradient(135deg,#69a081,#2d685f);}
+    body[data-theme="forest"] .metric,body[data-theme="forest"] .task-card {background:#fffffa;}
+    body[data-theme="forest"] .nav-btn.active {background:#3b6250;}
+    body[data-theme="forest"] .tag.dep {background:#e9ebda;color:#718557;}
+    body[data-theme="forest"] .graph-guide {background:#fffffa;}
+    .appearance-panel {position:absolute;top:calc(100% + 8px);right:0;z-index:17; width:min(370px,calc(100vw - 30px)); background:var(--surface); color:var(--ink);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow);}
+    .appearance-panel h3 {font-size:13px;margin:0 0 11px;letter-spacing:-.15px;}
+    .appearance-panel .group {margin-bottom:17px;}
+    .appearance-panel .group:last-child {margin-bottom:0;}
+    .appearance-options {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
+    .appearance-option {padding:10px 8px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--ink);font-size:11px;font-weight:720;text-align:center;}
+    .appearance-option[aria-pressed="true"] {outline:2px solid var(--purple);outline-offset:-1px;background:var(--purple-light);}
+    .appearance-option:hover {border-color:var(--purple);}
+    .theme-swatches {display:flex;justify-content:center;gap:3px;margin-bottom:7px;}
+    .theme-swatches i {display:block;width:18px;height:18px;border-radius:5px;border:1px solid #90909033;}
+    .topbar {position:relative;}
+    .panel-tools {flex-wrap:wrap;}
+    .appearance-control {padding:9px 10px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--ink);font-size:11px;font-weight:710;}
+    .graph-area.skill-tree {background-size:26px 26px;}
+    .graph-area.skill-tree::before {content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 52% 38%,rgba(112,127,212,.055),transparent 58%);}
+    .graph-area.skill-tree .graph-node .node-body {transition:stroke .2s;}
+    .graph-area .graph-port {cursor:crosshair;}
+    .graph-area .graph-port:hover {stroke:var(--purple);stroke-width:4;}
+    .graph-area .graph-node.is-dragging {cursor:grabbing;}
+    .graph-area .graph-node {cursor:move;}
+    .graph-area .graph-node text {pointer-events:none;}
+    .graph-area .graph-edge-hit {cursor:context-menu;stroke:transparent;pointer-events:stroke;}
+    .graph-area .graph-edge {pointer-events:none;}
+    .graph-area .graph-edge:hover {stroke:var(--purple);}
+    .graph-context {position:absolute;z-index:8;min-width:185px;max-width:250px;padding:5px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:11px;color:var(--ink);}
+    .graph-context button {display:block;width:100%;border:0;background:transparent;color:inherit;border-radius:7px;padding:10px 11px;text-align:left;font-size:12px;}
+    .graph-context button:hover {background:var(--purple-light);}
+    .graph-context .separator {height:1px;background:var(--border);margin:5px 3px;}
+    .graph-tips {position:absolute;bottom:17px;right:17px;padding:8px 11px;background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:10px;pointer-events:none;max-width:300px;line-height:1.5;}
+    body[data-layout="top"] .app {flex-direction:column;}
+    body[data-layout="top"] .sidebar {width:100%;height:auto;min-height:0;padding:10px clamp(18px,3.6vw,55px);flex-direction:row;align-items:center;gap:20px;z-index:18;border-bottom:1px solid #36425d;}
+    body[data-layout="top"] .brand {padding:0;flex:none;}
+    body[data-layout="top"] .nav-label,body[data-layout="top"] .sidebar-tip {display:none;}
+    body[data-layout="top"] .nav-btn {width:auto;min-width:max-content;margin:0;padding:10px 12px;}
+    body[data-layout="top"] .nav-bottom {margin:0 0 0 auto;padding:0;border:0;display:flex;align-items:center;gap:2px;}
+    body[data-layout="top"] .nav-bottom .nav-btn {padding:10px;}
+    body[data-layout="top"] .page {padding-top:25px;}
+    body[data-layout="top"] .brand-word {display:inline;}
+    body[data-layout="top"] .nav-btn span {display:inline;}
+    body[data-layout="top"] .nav-bottom .nav-btn span {display:none;}
+    @media(max-width:780px) {
+      body[data-layout="top"] .sidebar {gap:7px;padding:9px 12px;overflow-x:auto;}
+      body[data-layout="top"] .brand-word {display:none;}
+      body[data-layout="top"] .nav-btn span {display:none;}
+      body[data-layout="top"] .nav-bottom {margin-left:auto;}
+      .graph-tips {display:none;}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M5 6h6M14 6h5M7 8v8h10M17 8v8"/><circle cx="5" cy="6" r="2" fill="white"/><circle cx="19" cy="6" r="2" fill="white"/><circle cx="17" cy="18" r="2" fill="white"/><circle cx="7" cy="18" r="2" fill="white"/></svg></div><span class="brand-word">TaskGraph</span></div>
+    <div class="nav-label">WORKSPACE</div>
+    <button class="nav-btn active" id="navBoard" data-view="board" title="Task board"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="7" height="16" rx="2"/><rect x="14" y="4" width="7" height="10" rx="2"/></svg><span>Task board</span></button>
+    <button class="nav-btn" id="navGraph" data-view="graph" title="Dependency map"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2" y="9" width="6" height="6" rx="1"/><rect x="16" y="3" width="6" height="6" rx="1"/><rect x="16" y="15" width="6" height="6" rx="1"/><path d="M8 12h4l4-6M12 12l4 6"/></svg><span>Dependency map</span></button>
+    <div class="nav-bottom">
+      <div class="nav-label">PROJECT DATA</div>
+      <button class="nav-btn" id="exportBtn" title="Export JSON"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v4h16v-4"/></svg><span>Export backup</span></button>
+      <button class="nav-btn" id="importBtn" title="Import JSON"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20V8m0 0 4 4m-4-4-4 4M4 7V3h16v4"/></svg><span>Import backup</span></button>
+      <button class="nav-btn" id="sampleBtn" title="Load example project"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4z"/></svg><span>Load example</span></button>
+      <button class="nav-btn" id="clearBtn" title="Clear all tasks"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg><span>Clear tasks</span></button>
+      <input type="file" id="fileInput" accept=".json,application/json" hidden />
+      <div class="sidebar-tip" id="sidebarTip"><strong>Saved locally</strong>Changes are stored on this device. Select Collaborate to share a workspace with teammates.</div>
+    </div>
+  </aside>
+  <main class="content"><div class="page">
+    <div class="topbar">
+      <div><div class="eyebrow">PROJECT WORKSPACE</div><h1 id="pageTitle">Task board</h1><div class="subtitle" id="pageSubtitle">Manage tasks, owners, milestones, and progress.</div></div>
+      <div class="top-actions"><span class="cloud-pill" id="cloudPill">Local mode</span><button class="btn" id="appearanceBtn" aria-expanded="false" aria-controls="appearancePanel">Appearance</button><button class="btn" id="collabBtn">Collaborate</button><button class="btn" id="otherViewBtn">View dependencies</button><button class="btn" id="quickAddBtn">Quick add / bulk paste</button><button class="btn primary" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> New task</button></div>
+      <div class="appearance-panel hidden" id="appearancePanel" role="region" aria-label="Appearance settings">
+        <div class="group"><h3>Color theme</h3><div class="appearance-options">
+          <button class="appearance-option" data-theme-choice="studio" aria-pressed="true"><span class="theme-swatches"><i style="background:#f6f7fb"></i><i style="background:#14203a"></i><i style="background:#6058c9"></i></span>Studio</button>
+          <button class="appearance-option" data-theme-choice="midnight" aria-pressed="false"><span class="theme-swatches"><i style="background:#0b1220"></i><i style="background:#253453"></i><i style="background:#9b9cf8"></i></span>Midnight</button>
+          <button class="appearance-option" data-theme-choice="forest" aria-pressed="false"><span class="theme-swatches"><i style="background:#f2f4ee"></i><i style="background:#213c32"></i><i style="background:#427c64"></i></span>Forest</button>
+        </div></div>
+        <div class="group"><h3>Workspace layout</h3><div class="appearance-options" style="grid-template-columns:1fr 1fr"><button class="appearance-option" data-layout-choice="sidebar" aria-pressed="true">Sidebar</button><button class="appearance-option" data-layout-choice="top" aria-pressed="false">Top navigation</button></div></div>
+        <div class="group"><h3>Diagram style</h3><div class="appearance-options" style="grid-template-columns:1fr 1fr"><button class="appearance-option" data-skin-choice="skill" aria-pressed="true">Skill tree</button><button class="appearance-option" data-skin-choice="flow" aria-pressed="false">Flow diagram</button></div></div>
+      </div>
+    </div>
+    <section class="metrics" aria-label="Project summary">
+      <div class="metric"><div><div class="metric-label">Ready to start</div><div class="metric-number" id="readyMetric">0</div></div><div class="metric-dot ready"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 5 9 7-9 7z"/></svg></div></div>
+      <div class="metric"><div><div class="metric-label">Blocked by tasks</div><div class="metric-number" id="blockedMetric">0</div></div><div class="metric-dot blocked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></svg></div></div>
+      <div class="metric"><div><div class="metric-label">On hold</div><div class="metric-number" id="holdMetric">0</div></div><div class="metric-dot hold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5v14M15 5v14"/></svg></div></div>
+      <div class="metric"><div><div class="metric-label">Completed</div><div class="metric-number" id="doneMetric">0</div></div><div class="metric-dot done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m4 12 5 5L20 6"/></svg></div></div>
+    </section>
+    <section class="work-panel" id="boardView">
+      <div class="panel-toolbar"><div><div class="panel-title">Task pipeline</div><div class="panel-hint">Drag cards between columns or open a task to update its status.</div></div><div class="panel-tools"><input class="search" id="taskSearch" type="search" placeholder="Search tasks..." aria-label="Search tasks" /></div></div>
+      <div id="boardContent"></div>
+    </section>
+    <section class="work-panel hidden" id="graphView">
+      <div class="panel-toolbar"><div><div class="panel-title">Task dependency map</div><div class="panel-hint">Arrows point from a prerequisite to the task it unlocks. Tasks with no prerequisites appear first.</div></div><div class="panel-tools"><label for="graphDirection" style="font-size:11px;color:var(--muted)">Direction</label><select class="appearance-control" id="graphDirection" aria-label="Graph direction"><option value="vertical">Top to bottom</option><option value="horizontal">Left to right</option></select><button class="btn small" id="autoLayoutBtn" title="Remove manual positions for this direction">Auto arrange</button><button class="btn small" id="focusStartBtn">Starting tasks</button><button class="btn small" id="fitBtnTop">Fit all tasks</button></div></div>
+      <div class="graph-area" id="graphArea">
+        <svg id="graphSvg" role="img" aria-label="Interactive task dependency diagram"><defs><marker id="arrowDefault" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b5c2d3"/></marker><marker id="arrowActive" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#756ce3"/></marker></defs><g id="graphStage"></g></svg>
+        <div class="graph-guide">Drag nodes to rearrange · Drag from ● output to ● input to link · Right-click for actions</div>
+        <div class="graph-controls"><button class="btn" id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button><button class="btn" id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button><button class="btn" id="fitBtn" title="Fit graph" aria-label="Fit graph">⤢</button></div>
+        <div class="graph-legend"><span><i style="background:#357bcc"></i>Ready</span><span><i style="background:#8795aa"></i>Blocked</span><span><i style="background:#bb8127"></i>On hold</span><span><i style="background:#23936c"></i>Completed</span></div>
+        <div class="graph-tips">Click a task to edit · Right-click a connection to remove it</div><div class="graph-context hidden" id="graphContext" role="menu"></div>
+        <div class="graph-empty hidden" id="graphEmpty"></div>
+      </div>
+    </section>
+  </div></main>
+</div>
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
+  <div class="drawer-head"><strong id="drawerTitle">New task</strong><button class="close" id="closeDrawer" aria-label="Close">×</button></div>
+  <form id="taskForm" style="display:flex; flex-direction:column; min-height:0; flex:1;" novalidate>
+    <div class="drawer-body">
+      <div class="field"><label for="titleInput">Task title *</label><input id="titleInput" maxlength="140" required placeholder="e.g. Build the first prototype" /></div>
+      <div class="field"><label for="descInput">Description</label><textarea id="descInput" placeholder="What needs to be done?"></textarea></div>
+      <div class="two-fields">
+        <div class="field"><label for="ownerInput">Assigned to</label><input id="ownerInput" maxlength="90" placeholder="Person's name" /></div>
+        <div class="field"><label for="milestoneInput">Milestone</label><input id="milestoneInput" maxlength="100" placeholder="e.g. Prototype" /></div>
+      </div>
+      <div class="field"><label for="statusInput">Task status</label><select id="statusInput"><option value="todo">To do</option><option value="on-hold">On hold</option><option value="completed">Completed</option></select><small>“Blocked” is calculated automatically when prerequisite tasks are incomplete.</small></div>
+      <div class="dep-section"><div class="field-label">Depends on these tasks</div><div style="font-size:11px;color:#8190a5;line-height:1.6;">Select every task that must finish before this one can start. You can select several.</div><div class="dep-list" id="dependencyOptions"></div></div>
+      <div class="error hidden" id="formError" role="alert"></div>
+    </div>
+    <div class="drawer-foot"><button type="button" class="btn danger hidden" id="deleteTask">Delete</button><div class="drawer-foot-right"><button type="button" class="btn" id="cancelTask">Cancel</button><button type="submit" class="btn primary">Save task</button></div></div>
+  </form>
+</div>
+<section class="bulk-modal" id="bulkModal" role="dialog" aria-modal="true" aria-labelledby="bulkTitle" aria-hidden="true">
+  <div class="bulk-head"><strong id="bulkTitle">Quick add tasks</strong><button class="close" id="closeBulk" aria-label="Close quick add">×</button></div>
+  <div class="bulk-body">
+    <p>Paste one task per line. You can simply enter titles, or use <code>Title | Assignee | Milestone | Prerequisites | Status</code>. Separate multiple prerequisite names with commas. You can also write <code>Task name &lt;- Prerequisite 1, Prerequisite 2</code>. Tabs pasted from a spreadsheet are supported.</p>
+    <textarea id="bulkInput" spellcheck="false" placeholder="Define requirements
+Sketch design <- Define requirements
+Order parts | Alex | Prototype | Define requirements
+Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea>
+    <div style="display:flex; justify-content:space-between; margin-top:9px; gap:10px;"><span style="font-size:11px;color:#8290a4">The list can refer to existing tasks or tasks anywhere in this paste.</span><button class="bulk-example" id="bulkExample" type="button">Insert example</button></div>
+    <div class="bulk-preview" id="bulkPreview" role="status" aria-live="polite">Paste tasks above to preview them.</div>
+  </div>
+  <div class="bulk-footer"><span class="small-note">Checks unknown dependencies and circular relationships before adding tasks.</span><div style="display:flex;gap:8px"><button class="btn" id="cancelBulk">Cancel</button><button class="btn primary" id="submitBulk" disabled>Add tasks</button></div></div>
+</section>
+
+<section class="collab-modal" id="collabModal" role="dialog" aria-modal="true" aria-labelledby="collabTitle" aria-hidden="true">
+  <div class="collab-head"><strong id="collabTitle">Team collaboration</strong><button class="close" id="closeCollab" aria-label="Close collaboration settings">×</button></div>
+  <div class="collab-body">
+    <div class="collab-section">
+      <h3>1. Connect your Supabase project</h3>
+      <p>Run the included SQL setup in your Supabase project, then enter its Project URL and publishable (or legacy anon) key. Never enter a service_role or secret API key. This configuration is saved only in this browser.</p>
+      <div class="collab-row"><div class="field"><label for="cloudUrl">Supabase Project URL</label><input id="cloudUrl" type="url" placeholder="https://your-project.supabase.co" autocomplete="off" /></div></div>
+      <div class="collab-row"><div class="field"><label for="cloudKey">Publishable / anon key</label><input id="cloudKey" placeholder="sb_publishable_..." autocomplete="off" spellcheck="false" /></div><button class="btn" type="button" id="cloudConnect">Connect</button></div>
+      <div id="cloudConnection" class="collab-message">Not connected.</div>
+    </div>
+    <div class="collab-section hidden" id="cloudAuthSection">
+      <h3>2. Sign in or create an account</h3>
+      <p>Each person uses their own email and password. Sign-up may require email confirmation, depending on your Supabase settings.</p>
+      <div class="collab-row"><div class="field"><label for="cloudEmail">Email</label><input id="cloudEmail" type="email" placeholder="you@example.com" autocomplete="email" /></div><div class="field"><label for="cloudPassword">Password</label><input id="cloudPassword" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" /></div></div>
+      <div class="collab-row"><button class="btn primary" id="cloudSignIn" type="button">Sign in</button><button class="btn" id="cloudSignUp" type="button">Create account</button><button class="btn hidden" id="cloudSignOut" type="button">Sign out</button></div>
+      <div id="cloudAuthInfo" class="collab-message"></div>
+    </div>
+    <div class="collab-section hidden" id="cloudWorkspaceSection">
+      <h3>3. Create or join a shared workspace</h3>
+      <div class="collab-row"><div class="field"><label for="cloudWorkspaceName">New workspace name</label><input id="cloudWorkspaceName" placeholder="Engineering project" maxlength="120" /></div><button class="btn" id="cloudCreateWorkspace" type="button">Create</button></div>
+      <div class="collab-row"><div class="field"><label for="cloudInviteInput">Teammate's invite code</label><input id="cloudInviteInput" placeholder="Paste invite code here" spellcheck="false" autocomplete="off" /></div><button class="btn" id="cloudJoinWorkspace" type="button">Join</button></div>
+      <div class="collab-message">Your shared workspaces:</div><div class="collab-workspaces" id="cloudWorkspaces"></div>
+      <div id="cloudCurrent" class="hidden">
+        <p>Current workspace: <strong id="cloudWorkspaceLabel"></strong></p>
+        <div class="invite-code" id="cloudInviteDisplay"></div>
+        <div class="collab-row" style="margin-top:8px"><button class="btn" id="cloudCopyInvite" type="button">Copy invite code</button><button class="btn" id="cloudRefresh" type="button">Refresh board</button><button class="btn" id="cloudCopyLocal" type="button">Copy local tasks to shared</button></div>
+        <div class="collab-row"><button class="btn" id="cloudDownloadRecovery" type="button">Download unsaved draft (if any)</button></div>
+        <p>Both members see changes automatically. Invite codes grant workspace access: share yours privately.</p>
+      </div>
+      <button class="btn" id="cloudUseLocal" type="button">Use local project instead</button>
+    </div>
+    <div class="collab-message" id="cloudActionMessage" role="status" aria-live="polite"></div>
+  </div>
+</section>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(() => {
+  'use strict';
+  const STORE_KEY = 'taskgraph_workspace_v1';
+  const CLOUD_CONFIG_KEY = 'taskgraph_shared_config_v1';
+  const CLOUD_ACTIVE_KEY = 'taskgraph_shared_workspace_v1';
+  const APPEARANCE_KEY = 'taskgraph_appearance_v2';
+  const STATUSES = ['todo', 'on-hold', 'completed'];
+  const STATUS_LABELS = {todo:'To do','on-hold':'On hold',completed:'Completed'};
+  const el = id => document.getElementById(id);
+  const html = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const svgEscape = html;
+  let tasks = [];
+  let view = 'board';
+  let editId = null;
+  let highlightedId = null;
+  let searchQuery = '';
+  let transform = {x:45,y:95,k:1};
+  let graphBounds = {minX:0,minY:0,width:450,height:260};
+  let graphPositions = new Map();
+  let graphDirection='vertical', graphSkin='skill', appTheme='studio', appLayout='sidebar';
+  let pendingGraphPosition=null, pendingGraphDependency=null;
+  let toastTimer = null;
+  let dragId = null;
+  let cloudDb = null, cloudUser = null, cloudWorkspace = null;
+  let cloudRevision = 0, cloudChannel = null;
+  let cloudWriteBusy = false, cloudQueuedDraft = null, cloudRemoteChanged = false;
+  let cloudConfig = null;
+
+  function uniqueId() {
+    return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `task-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+  function load() {
+    try { const raw = localStorage.getItem(STORE_KEY); if(raw) tasks = validate(JSON.parse(raw)); }
+    catch(e) { console.warn('Could not load saved data:',e); tasks=[]; }
+  }
+  function save() {
+    if (!cloudWorkspace) {
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(tasks)); }
+      catch(e) { toast('Local saving unavailable — export a backup to keep changes.'); }
+      return;
+    }
+    // One atomic, version-checked server write per queued state. If another user
+    // writes first, the server rejects ours instead of silently losing their work.
+    cloudQueuedDraft = JSON.parse(JSON.stringify(tasks));
+    if(!cloudWriteBusy) flushCloudWrites();
+  }
+  async function flushCloudWrites(){
+    if(!cloudWorkspace || cloudWriteBusy || !cloudQueuedDraft)return;
+    cloudWriteBusy = true;
+    const working = cloudWorkspace.id;
+    try {
+      while(cloudQueuedDraft && cloudWorkspace?.id === working){
+        const draft=cloudQueuedDraft;
+        cloudQueuedDraft=null;
+        const {data,error}=await cloudDb.rpc('taskgraph_write_tasks',{
+          p_workspace_id:working,p_expected_revision:cloudRevision,p_tasks:draft
+        });
+        if(error)throw error;
+        cloudRevision=Number(data);
+        updateCloudIndicator('Shared · saved');
+      }
+    }catch(error){
+      cloudQueuedDraft=null;
+      const draft=JSON.stringify(tasks);
+      try{localStorage.setItem('taskgraph_unsaved_shared_draft_v1',draft);}catch(e){}
+      toast('Shared save failed. Refreshing server data; an unsaved draft was stored in this browser.');
+      setCloudMessage('Save failed: '+error.message+'\nAn unsaved draft was kept in this browser. Export your project before further edits.',true);
+      try{await reloadCloudWorkspace(working);}catch(e){setCloudMessage('Unable to reload shared workspace: '+e.message,true);}
+    }finally{
+      cloudWriteBusy=false;
+      if(cloudRemoteChanged && cloudWorkspace?.id===working){
+        cloudRemoteChanged=false;
+        try{await reloadCloudWorkspace(working);}catch(e){}
+      }
+      if(cloudQueuedDraft && cloudWorkspace?.id===working) flushCloudWrites();
+    }
+  }
+  function getTask(id) { return tasks.find(t => t.id === id); }
+  function prerequisitesDone(task) { return task.dependencies.every(id => getTask(id)?.status === 'completed'); }
+  function taskState(task) {
+    if(task.status === 'completed') return 'done';
+    if(task.status === 'on-hold') return 'hold';
+    return prerequisitesDone(task) ? 'ready' : 'blocked';
+  }
+  function taskStateLabel(task) { return {ready:'Ready', blocked:'Blocked', hold:'On hold',done:'Completed'}[taskState(task)]; }
+  function stateCounts() {
+    const counts = {ready:0,blocked:0,hold:0,done:0};
+    tasks.forEach(t=>counts[taskState(t)]++);
+    return counts;
+  }
+  function toast(message) {
+    const box=el('toast'); box.textContent=message; box.classList.add('show');
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=>box.classList.remove('show'),3200);
+  }
+  function safeGraphPositions(value){
+    const result={};
+    for(const mode of ['vertical','horizontal']){
+      const p=value?.[mode];
+      if(p && Number.isFinite(p.x) && Number.isFinite(p.y) && Math.abs(p.x)<100000 && Math.abs(p.y)<100000)
+        result[mode]={x:p.x,y:p.y};
+    }
+    return result;
+  }
+  function loadAppearance(){
+    try{
+      const a=JSON.parse(localStorage.getItem(APPEARANCE_KEY)||'{}');
+      if(['studio','midnight','forest'].includes(a.theme))appTheme=a.theme;
+      if(['sidebar','top'].includes(a.layout))appLayout=a.layout;
+      if(['skill','flow'].includes(a.skin))graphSkin=a.skin;
+      if(['vertical','horizontal'].includes(a.direction))graphDirection=a.direction;
+    }catch(e){}
+    applyAppearance();
+  }
+  function applyAppearance(){
+    document.body.dataset.theme=appTheme;
+    document.body.dataset.layout=appLayout;
+    document.querySelector('meta[name="color-scheme"]').content=appTheme==='midnight'?'dark':'light';
+    el('graphArea').classList.toggle('skill-tree',graphSkin==='skill');
+    el('graphDirection').value=graphDirection;
+    document.querySelectorAll('[data-theme-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.themeChoice===appTheme)));
+    document.querySelectorAll('[data-layout-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.layoutChoice===appLayout)));
+    document.querySelectorAll('[data-skin-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.skinChoice===graphSkin)));
+    try{localStorage.setItem(APPEARANCE_KEY,JSON.stringify({theme:appTheme,layout:appLayout,skin:graphSkin,direction:graphDirection}));}catch(e){}
+    if(view==='graph')requestAnimationFrame(()=>renderGraph(true));
+  }
+  function validate(value) {
+    const input = Array.isArray(value) ? value : value?.tasks;
+    if(!Array.isArray(input) || input.length>2000) throw Error('This is not a valid TaskGraph backup.');
+    const output = input.map(t=>{
+      if(!t || typeof t !== 'object' || typeof t.id !== 'string' || !t.id || typeof t.title !== 'string' || !t.title.trim() || !STATUSES.includes(t.status) || !Array.isArray(t.dependencies)) throw Error('Task data is invalid.');
+      if(t.dependencies.length>2000 || t.title.length>140) throw Error('Task data exceeds supported limits.');
+      return {
+        id:t.id, title:t.title.trim(), description:String(t.description || '').slice(0,20000),
+        assignee:String(t.assignee || '').slice(0,90), milestone:String(t.milestone || '').slice(0,100),
+        status:t.status, dependencies:t.dependencies.slice(), createdAt:Number(t.createdAt)||Date.now(),
+        graphPositions:safeGraphPositions(t.graphPositions)
+      };
+    });
+    const ids=new Set(output.map(t=>t.id));
+    if(ids.size !== output.length) throw Error('Duplicate task IDs found.');
+    for(const t of output) {
+      if(t.dependencies.some(d=>typeof d !== 'string' || !ids.has(d) || d===t.id) || new Set(t.dependencies).size!==t.dependencies.length) throw Error('Invalid task dependencies in backup.');
+    }
+    if(hasCycles(output)) throw Error('Task dependencies contain a cycle.');
+    return output;
+  }
+  function hasCycles(items) {
+    const byId=new Map(items.map(t=>[t.id,t]));
+    const color=new Map();
+    const visit=id=>{
+      if(color.get(id)===1) return true;
+      if(color.get(id)===2) return false;
+      color.set(id,1);
+      for(const dep of byId.get(id)?.dependencies ?? []) if(visit(dep)) return true;
+      color.set(id,2); return false;
+    };
+    return items.some(t=>visit(t.id));
+  }
+  function updateMetrics() {
+    const counts=stateCounts();
+    for(const x of Object.keys(counts)) el(`${x==='done'?'done':x}Metric`).textContent=counts[x];
+  }
+  function emptyPanel(title, detail, actions=true) {
+    return `<div class="zero-state"><div class="zero-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="9" width="5" height="6" rx="1"/><rect x="17" y="3" width="5" height="6" rx="1"/><rect x="17" y="15" width="5" height="6" rx="1"/><path d="M7 12h5l5-6m-5 6 5 6"/></svg></div><h2>${html(title)}</h2><p>${html(detail)}</p>${actions ? '<div class="zero-actions"><button class="btn primary" data-create>Add your first task</button><button class="btn" data-bulk>Paste a task list</button><button class="btn" data-sample>Load example project</button></div>':''}</div>`;
+  }
+  function cardMarkup(t) {
+    const state=taskState(t);
+    const deps=t.dependencies.length;
+    const initial=(t.assignee.trim().charAt(0)||'?').toUpperCase();
+    return `<div class="task-card" tabindex="0" role="button" draggable="true" data-id="${html(t.id)}" title="Open task ${html(t.title)}">
+      <div class="task-card-top"><h3>${html(t.title)}</h3></div>
+      <p class="subdetail">${html(t.description||'No description')}</p>
+      <div class="tags"><span class="tag ${state}">${taskStateLabel(t)}</span>${deps?`<span class="tag dep">${deps} prerequisite${deps!==1?'s':''}</span>`:''}</div>
+      <div class="card-footer"><div class="assignee"><span class="avatar ${t.assignee?'':'empty'}">${html(initial)}</span><span>${html(t.assignee||'Unassigned')}</span></div><span class="milestone" title="${html(t.milestone||'No milestone')}">${html(t.milestone||'—')}</span></div>
+    </div>`;
+  }
+  function renderBoard() {
+    const target=el('boardContent');
+    if(tasks.length===0) { target.innerHTML=emptyPanel('Build your project plan','Create tasks, assign owners, and link prerequisites. Then switch to the dependency map to see how the work connects.'); return; }
+    const matching = tasks.filter(t=>(t.title+' '+t.description+' '+t.assignee+' '+t.milestone).toLowerCase().includes(searchQuery));
+    target.innerHTML=`<div class="board">${STATUSES.map(status=>{
+      const list=matching.filter(t=>t.status===status).sort((a,b)=>a.createdAt-b.createdAt);
+      return `<div class="board-column" data-status="${status}"><div class="column-heading"><div class="column-title"><i></i>${STATUS_LABELS[status]}</div><span class="count">${list.length}</span></div><div class="task-list">${list.map(cardMarkup).join('')||'<div class="column-empty">Drop tasks here</div>'}</div></div>`;
+    }).join('')}</div>`;
+  }
+  function render() { updateMetrics(); renderBoard(); if(view==='graph') renderGraph(); }
+  function showView(name) {
+    view=name;
+    const graph = name==='graph';
+    el('boardView').classList.toggle('hidden',graph);
+    el('graphView').classList.toggle('hidden',!graph);
+    el('navBoard').classList.toggle('active',!graph);
+    el('navGraph').classList.toggle('active',graph);
+    el('pageTitle').textContent=graph?'Dependency map':'Task board';
+    el('pageSubtitle').textContent=graph?'Explore what must happen first and which tasks become available next.':'Manage tasks, owners, milestones, and progress.';
+    el('otherViewBtn').textContent=graph?'View task board':'View dependencies';
+    if(graph) requestAnimationFrame(()=>{renderGraph(false);focusStart();});
+  }
+  const QUICK_EXAMPLE = `Define requirements | Alex | Planning
+Sketch architecture | Jordan | Planning | Define requirements
+Select components | Sam | Prototype | Define requirements
+Build controller | Jordan | Prototype | Sketch architecture, Select components
+Assemble prototype | Alex | Prototype | Build controller
+System testing | Sam | Testing | Assemble prototype`;
+  function openBulk() {
+    if(el('drawer').classList.contains('visible'))closeDrawer();
+    el('bulkModal').classList.add('visible');
+    el('bulkModal').setAttribute('aria-hidden','false');
+    el('overlay').classList.add('visible');
+    document.body.style.overflow='hidden';
+    updateBulkPreview();
+    el('bulkInput').focus();
+  }
+  function closeBulk() {
+    el('bulkModal').classList.remove('visible');
+    el('bulkModal').setAttribute('aria-hidden','true');
+    el('overlay').classList.remove('visible');
+    document.body.style.overflow='';
+  }
+  function bulkStatus(s) {
+    const clean=String(s||'').trim().toLowerCase();
+    return ({'':'todo',todo:'todo','to do':'todo','on hold':'on-hold','on-hold':'on-hold',hold:'on-hold',done:'completed',complete:'completed',completed:'completed'})[clean];
+  }
+  function splitDelimited(line,separator) {
+    // Basic RFC-4180-style quoted fields; optional separator is comma, tab or pipe.
+    const out=[];let field='';let quoted=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){
+        if(quoted&&line[i+1]==='"'){field+='"';i++;}
+        else quoted=!quoted;
+      } else if(c===separator&&!quoted){out.push(field.trim());field='';}
+      else field+=c;
+    }
+    if(quoted)throw Error('Unclosed quote in input.');
+    out.push(field.trim());return out;
+  }
+  function bulkParse(text) {
+    const lines=text.split(/\r?\n/).map((raw,i)=>({raw:raw.trim(),number:i+1})).filter(x=>x.raw);
+    if(!lines.length)return {records:[],errors:[]};
+    const errors=[];
+    const drafts=[];
+    const csvHeader=/^\s*"?title"?\s*,/i.test(lines[0].raw);
+    let headings=null;
+    if(csvHeader) {
+      headings=splitDelimited(lines.shift().raw,',').map(h=>h.toLowerCase().replace(/[^a-z]/g,''));
+      if(!headings.includes('title'))return {records:[],errors:['CSV must include a Title header.']};
+    }
+    if(lines.length>2000||tasks.length+lines.length>2000)return {records:[],errors:['TaskGraph supports at most 2,000 tasks in a project.']};
+    for(const line of lines){
+      try {
+        let fields;
+        if(headings){
+          const cells=splitDelimited(line.raw,',');
+          if(cells.length!==headings.length)throw Error('CSV column count differs from the header.');
+          const obj=Object.fromEntries(headings.map((h,i)=>[h,cells[i]]));
+          fields=[obj.title,obj.assignee||obj.owner,obj.milestone,obj.prerequisites||obj.dependencies||obj.dependson,obj.status];
+        } else if(line.raw.includes('\t')) fields=splitDelimited(line.raw,'\t');
+        else if(line.raw.includes('|')) fields=splitDelimited(line.raw,'|');
+        else if(line.raw.includes('<-')){
+          const parts=line.raw.split(/\s*<-\s*/);
+          if(parts.length!==2)throw Error('Use Task <- Dependency 1, Dependency 2.');
+          fields=[parts[0],'','',parts[1]];
+        }
+        else fields=[line.raw];
+        if(fields.length>5)throw Error('Too many columns (expected Title, Assignee, Milestone, Prerequisites, Status).');
+        const [title='',assignee='',milestone='',prerequisites='',rawStatus='']=fields;
+        if(!title.trim())throw Error('Task title is required.');
+        if(title.length>140||assignee.length>90||milestone.length>100)throw Error('A title, assignee, or milestone exceeds the allowed length.');
+        const status=bulkStatus(rawStatus);
+        if(!status)throw Error(`Unrecognized status: ${rawStatus}.`);
+        const dependencyNames=String(prerequisites||'').split(',').map(x=>x.trim()).filter(Boolean);
+        drafts.push({id:uniqueId(),title:title.trim(),description:'',assignee:assignee.trim(),milestone:milestone.trim(),status,dependencies:[],dependencyNames,createdAt:Date.now()+drafts.length,number:line.number});
+      }catch(e){errors.push(`Line ${line.number}: ${e.message}`);}
+    }
+    if(errors.length)return {records:[],errors};
+    const lookup=new Map();
+    for(const t of [...tasks,...drafts]){
+      const key=t.title.trim().toLocaleLowerCase();
+      if(!lookup.has(key))lookup.set(key,[]);
+      lookup.get(key).push(t.id);
+    }
+    for(const t of drafts){
+      for(const name of t.dependencyNames){
+        const ids=lookup.get(name.toLocaleLowerCase());
+        if(!ids?.length)errors.push(`Line ${t.number}: Prerequisite “${name}” does not exist.`);
+        else if(ids.length>1)errors.push(`Line ${t.number}: Prerequisite “${name}” is ambiguous (${ids.length} tasks have this title).`);
+        else if(ids[0]===t.id)errors.push(`Line ${t.number}: A task cannot depend on itself.`);
+        else if(t.dependencies.includes(ids[0]))errors.push(`Line ${t.number}: Duplicate prerequisite “${name}”.`);
+        else t.dependencies.push(ids[0]);
+      }
+    }
+    const records=drafts.map(({dependencyNames,number,...record})=>record);
+    if(!errors.length && hasCycles([...tasks,...records]))errors.push('These dependencies create a circular relationship.');
+    return {records:errors.length?[]:records,errors};
+  }
+  function updateBulkPreview(){
+    const {records,errors}=bulkParse(el('bulkInput').value);
+    const result=el('bulkPreview');
+    result.classList.toggle('error-preview',!!errors.length);
+    if(errors.length) result.innerHTML='<strong>Fix these issues before adding:</strong><br>'+errors.slice(0,10).map(html).join('<br>')+(errors.length>10?`<br>…and ${errors.length-10} more.`:'');
+    else if(!records.length)result.textContent='Paste tasks above to preview them.';
+    else result.innerHTML=`<strong>${records.length} task${records.length===1?'':'s'} ready to add</strong> · ${records.reduce((a,t)=>a+t.dependencies.length,0)} dependencies<br>` +
+      records.slice(0,8).map(t=>`<span style="color:#57667c">${html(t.title)}${t.assignee?' · '+html(t.assignee):''}${t.dependencies.length?' · '+t.dependencies.length+' prerequisite(s)':''}</span>`).join('<br>')+
+      (records.length>8?`<br>…and ${records.length-8} more.`:'');
+    el('submitBulk').disabled=!records.length || !!errors.length;
+    el('submitBulk').textContent=records.length?`Add ${records.length} task${records.length===1?'':'s'}`:'Add tasks';
+  }
+  function submitBulk(){
+    const {records,errors}=bulkParse(el('bulkInput').value);
+    if(errors.length){updateBulkPreview();return;}
+    if(!records.length)return;
+    tasks=[...tasks,...records];
+    save();closeBulk();render();
+    if(view==='graph')renderGraph(true);
+    el('bulkInput').value='';
+    toast(`Added ${records.length} task${records.length===1?'':'s'} and their dependencies.`);
+  }
+  function openDrawer(id=null,options=null) {
+    pendingGraphPosition=!id?(options?.position||null):null;
+    pendingGraphDependency=!id?(options?.dependency||null):null;
+    editId=id; highlightedId=id;
+    const task=id?getTask(id):null;
+    if(id&&!task) return;
+    el('drawerTitle').textContent=task?'Edit task':'New task';
+    el('titleInput').value=task?.title||'';
+    el('descInput').value=task?.description||'';
+    el('ownerInput').value=task?.assignee||'';
+    el('milestoneInput').value=task?.milestone||'';
+    el('statusInput').value=task?.status||'todo';
+    el('formError').classList.add('hidden');
+    el('deleteTask').classList.toggle('hidden',!task);
+    const candidates=tasks.filter(t=>t.id!==id).sort((a,b)=>a.createdAt-b.createdAt);
+    el('dependencyOptions').innerHTML = candidates.length
+      ? candidates.map(t=>`<label class="dep-choice"><input type="checkbox" name="dependency" value="${html(t.id)}" ${task?.dependencies.includes(t.id)||pendingGraphDependency===t.id?'checked':''}/><span class="dep-choice-text"><strong>${html(t.title)}</strong><small>${html(STATUS_LABELS[t.status])}${t.milestone?' · '+html(t.milestone):''}</small></span></label>`).join('')
+      : '<div style="font-size:12px;color:#8793a6;line-height:1.6;padding:9px 2px;">No other tasks exist yet. Create additional tasks to link dependencies.</div>';
+    el('overlay').classList.add('visible'); el('drawer').classList.add('visible');
+    el('drawer').setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+    if(view==='graph') renderGraph();
+    setTimeout(()=>el('titleInput').focus(),150);
+  }
+  function closeDrawer() {
+    el('overlay').classList.remove('visible'); el('drawer').classList.remove('visible');
+    el('drawer').setAttribute('aria-hidden','true');
+    document.body.style.overflow='';
+    editId=null;pendingGraphPosition=null;pendingGraphDependency=null;
+  }
+  function showError(msg) { el('formError').textContent=msg; el('formError').classList.remove('hidden'); }
+  function submitTask(e) {
+    e.preventDefault();
+    const title=el('titleInput').value.trim();
+    if(!title) { showError('Please enter a task title.'); el('titleInput').focus(); return; }
+    const dependencies=Array.from(el('dependencyOptions').querySelectorAll('input:checked')).map(input=>input.value);
+    const now=Date.now();
+    const old=editId?getTask(editId):null;
+    const record={id:old?.id||uniqueId(),title,description:el('descInput').value.trim(),
+      assignee:el('ownerInput').value.trim(),milestone:el('milestoneInput').value.trim(),
+      status:el('statusInput').value,dependencies,createdAt:old?.createdAt||now,
+      graphPositions:old?.graphPositions|| (pendingGraphPosition?{[graphDirection]:pendingGraphPosition}:{})};
+    const proposed=old?tasks.map(t=>t.id===old.id?record:t):[...tasks,record];
+    if(hasCycles(proposed)){showError('Circular dependency: this task would eventually depend on itself. Remove one of the selected prerequisites.');return;}
+    tasks=proposed;save();closeDrawer();render();
+    if(view==='graph') renderGraph(false);
+    toast(old?'Task updated.':'Task created.');
+  }
+  function deleteTask() {
+    if(!editId) return;
+    const task=getTask(editId);
+    if(!task || !confirm(`Delete “${task.title}”? This also removes it from other tasks’ dependency lists.`))return;
+    tasks=tasks.filter(t=>t.id!==task.id).map(t=>({...t,dependencies:t.dependencies.filter(d=>d!==task.id)}));
+    highlightedId=null; save();closeDrawer();render();
+    if(view==='graph') renderGraph(true);
+    toast('Task deleted.');
+  }
+  function moveTask(id,status) {
+    if(!STATUSES.includes(status))return;
+    const task=getTask(id);
+    if(!task || task.status===status)return;
+    task.status=status; save();render();toast(`Moved to ${STATUS_LABELS[status]}.`);
+  }
+  function sampleProject() {
+    if(cloudWorkspace && !confirm('This replaces ALL tasks for every member of this shared workspace. Continue?'))return;
+    if(!cloudWorkspace && tasks.length && !confirm('Replace the current tasks with an example project? Export your work first if you want to keep it.'))return;
+    const names=['Define requirements','Sketch system architecture','Select components','Design control circuit','Implement interface','Assemble prototype','Test integration','Final validation'];
+    const owners=['Alex','Jordan','Sam','Jordan','Taylor','Alex','Sam','Taylor'];
+    const milestones=['Planning','Planning','Prototype','Prototype','Software','Prototype','Testing','Delivery'];
+    const deps=[[],[0],[0],[1,2],[1],[3],[4,5],[6]];
+    const statuses=['completed','completed','todo','on-hold','todo','todo','todo','todo'];
+    const ids=names.map(()=>uniqueId());
+    tasks=names.map((title,i)=>({id:ids[i],title,description:'',assignee:owners[i],milestone:milestones[i],status:statuses[i],dependencies:deps[i].map(j=>ids[j]),createdAt:Date.now()+i}));
+    highlightedId=null;searchQuery='';el('taskSearch').value='';save();render();
+    if(view==='graph')renderGraph(true);
+    toast('Example project loaded. You can edit or delete every task.');
+  }
+  function clearAll() {
+    if(!tasks.length) {toast('There are no tasks to clear.');return;}
+    if(!confirm(cloudWorkspace?'Delete every task for ALL members of this shared workspace?':'Delete every task in this workspace? This cannot be undone unless you exported a backup.'))return;
+    tasks=[];highlightedId=null;save();render();toast('All tasks cleared.');
+  }
+  function exportData() {
+    const content=JSON.stringify({app:'TaskGraph',version:1,exportedAt:new Date().toISOString(),tasks},null,2);
+    const blob=new Blob([content],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`taskgraph-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+    toast('Backup exported.');
+  }
+  async function importData(file) {
+    if(!file)return;
+    try {
+      const content=await file.text();
+      const parsed=validate(JSON.parse(content));
+      if(tasks.length && !confirm(`Replace your ${tasks.length} current task(s) with ${parsed.length} imported task(s)?`))return;
+      tasks=parsed; highlightedId=null; searchQuery='';el('taskSearch').value='';save();render();
+      if(view==='graph')renderGraph(true);
+      toast(`Imported ${tasks.length} task(s).`);
+    } catch(e) {alert(`Could not import project: ${e.message}`);}
+    finally {el('fileInput').value='';}
+  }
+
+  // Dependency canvas: vertical or horizontal layouts with independent saved positions.
+  const NODE_W=232,NODE_H=120;
+  function buildLayout(){
+    const byId=new Map(tasks.map(t=>[t.id,t]));
+    const depths=new Map();
+    const depth=id=>{
+      if(depths.has(id))return depths.get(id);
+      const t=byId.get(id); const d=t.dependencies.length?Math.max(...t.dependencies.map(depth))+1:0;
+      depths.set(id,d);return d;
+    };
+    for(const t of tasks)depth(t.id);
+    const groups=[];
+    for(const t of tasks)(groups[depths.get(t.id)]??=[]).push(t);
+    const positions=new Map();
+    groups.forEach((group,layer)=>{
+      if(layer>0)group.sort((a,b)=>{
+        const position=t=>t.dependencies.reduce((n,id)=>n+(positions.get(id)?.index||0),0)/Math.max(1,t.dependencies.length);
+        return position(a)-position(b)||a.createdAt-b.createdAt;
+      });
+      group.forEach((t,index)=>positions.set(t.id,{index,...(graphDirection==='vertical'
+        ?{x:90+index*298,y:95+layer*207}:{x:88+layer*320,y:90+index*176})}));
+    });
+    if(graphDirection==='vertical'){
+      const largest=Math.max(1,...groups.map(g=>g.length));
+      for(const group of groups){const shift=(largest-group.length)*149;group.forEach(t=>positions.get(t.id).x+=shift);}
+    }else{
+      const largest=Math.max(1,...groups.map(g=>g.length));
+      for(const group of groups){const shift=(largest-group.length)*88;group.forEach(t=>positions.get(t.id).y+=shift);}
+    }
+    for(const t of tasks){
+      const saved=t.graphPositions?.[graphDirection];
+      if(saved)positions.set(t.id,{...positions.get(t.id),x:saved.x,y:saved.y});
+    }
+    return positions;
+  }
+  function descendants(id){
+    const reached=new Set();if(!id)return reached;
+    const explore=current=>{for(const t of tasks)if(t.dependencies.includes(current)&&!reached.has(t.id)){reached.add(t.id);explore(t.id);}};
+    explore(id);return reached;
+  }
+  function svgTextLines(title,maxChars=28,maxLines=2){
+    const lines=[];let current='';
+    for(const word of title.split(/\s+/)){
+      if((current+' '+word).trim().length>maxChars&&current){lines.push(current);current=word;}
+      else current=(current+' '+word).trim();
+    }
+    if(current)lines.push(current);
+    const output=lines.slice(0,maxLines);
+    if(lines.length>maxLines)output[maxLines-1]=output[maxLines-1].slice(0,maxChars-2)+'…';
+    return output;
+  }
+  function graphPalette(){
+    if(appTheme==='midnight')return {card:'#17253b',text:'#f1f5ff',sub:'#afbdd4',line:'#52627d',border:'#405270',active:'#b5b4ff'};
+    if(appTheme==='forest')return {card:'#fffffa',text:'#263a2e',sub:'#728675',line:'#9ab3a4',border:'#c9dacf',active:'#427c64'};
+    return {card:'#ffffff',text:'#23304b',sub:'#8190a6',line:'#b5c2d3',border:'#d9e0eb',active:'#756ce3'};
+  }
+  function graphNode(t,p,related){
+    const state=taskState(t),pal=graphPalette();
+    const color={ready:appTheme==='midnight'?'#79b6ff':'#397fcb',blocked:appTheme==='midnight'?'#9eabc0':'#929db0',hold:appTheme==='midnight'?'#e4b161':'#c18a32',done:appTheme==='midnight'?'#63cca1':'#2a9a77'}[state];
+    const bg={ready:appTheme==='midnight'?'#1a3858':'#edf5ff',blocked:appTheme==='midnight'?'#2a3444':'#f1f3f7',hold:appTheme==='midnight'?'#423722':'#fff6e6',done:appTheme==='midnight'?'#193e35':'#e8f8f0'}[state];
+    const selected=highlightedId===t.id;
+    const opacity=highlightedId&&!related.has(t.id)&&!selected?.38:1;
+    const title=svgTextLines(t.title).map((line,i)=>`<text x="19" y="${39+i*18}" font-size="13.5" font-weight="720" fill="${pal.text}">${svgEscape(line)}</text>`).join('');
+    const vert=graphDirection==='vertical',cx=vert?NODE_W/2:0,cy=vert?0:NODE_H/2,
+      ox=vert?NODE_W/2:NODE_W,oy=vert?NODE_H:NODE_H/2;
+    const label=taskStateLabel(t),badgeW=Math.max(46,label.length*6.5+18);
+    return `<g class="graph-node" role="button" tabindex="0" data-node="${svgEscape(t.id)}" transform="translate(${p.x} ${p.y})" opacity="${opacity}">
+      <rect class="node-body" x="0" y="0" width="${NODE_W}" height="${NODE_H}" rx="${graphSkin==='skill'?16:10}" fill="${pal.card}" stroke="${selected?pal.active:pal.border}" stroke-width="${selected?2.7:1.5}" filter="url(#nodeShadow)"/>
+      ${graphSkin==='skill'?`<path d="M 12 6 H ${NODE_W-12}" stroke="${color}" stroke-width="2" opacity=".72"/>`:`<rect x="0" y="10" width="4" height="100" rx="2" fill="${color}"/>`}
+      ${title}
+      <rect x="17" y="77" rx="6" width="${badgeW}" height="22" fill="${bg}"/>
+      <text x="26" y="92.5" font-size="10.5" font-weight="740" fill="${color}">${label}</text>
+      <text x="18" y="112" font-size="10" fill="${pal.sub}">${svgEscape((t.assignee||'Unassigned').slice(0,24))}</text>
+      <text x="${NODE_W-16}" y="112" text-anchor="end" font-size="9.5" fill="${pal.sub}">${t.dependencies.length?t.dependencies.length+' prerequisite'+(t.dependencies.length>1?'s':''):'START'}</text>
+      <circle class="graph-port" data-port="in" cx="${cx}" cy="${cy}" r="8" stroke="${pal.border}" stroke-width="2" fill="${pal.card}" aria-label="Incoming dependency port"/>
+      <circle class="graph-port" data-port="out" cx="${ox}" cy="${oy}" r="9" stroke="${color}" stroke-width="2.5" fill="${pal.card}" aria-label="Drag to a task to add a dependency"/>
+      <circle cx="${ox}" cy="${oy}" r="2.7" fill="${color}" pointer-events="none"/>
+      <title>${svgEscape(t.title)} — ${taskStateLabel(t)}. Drag to reposition. Drag from output port to another task to link.</title>
+    </g>`;
+  }
+  function edgeCoordinates(from,to,positions=graphPositions){
+    const a=positions.get(from),b=positions.get(to);if(!a||!b)return '';
+    if(graphDirection==='vertical'){
+      const x1=a.x+NODE_W/2,y1=a.y+NODE_H,x2=b.x+NODE_W/2,y2=b.y;
+      const bend=Math.max(42,Math.abs(y2-y1)*.47);
+      return `M ${x1} ${y1} C ${x1} ${y1+bend},${x2} ${y2-bend},${x2} ${y2-8}`;
+    }
+    const x1=a.x+NODE_W,y1=a.y+NODE_H/2,x2=b.x,y2=b.y+NODE_H/2;
+    const bend=Math.max(50,Math.abs(x2-x1)*.42);
+    return `M ${x1} ${y1} C ${x1+bend} ${y1},${x2-bend} ${y2},${x2-8} ${y2}`;
+  }
+  function updateGraphGeometry(){
+    el('graphStage').querySelectorAll('[data-edge-from]').forEach(edge=>edge.setAttribute('d',edgeCoordinates(edge.dataset.edgeFrom,edge.dataset.edgeTo)));
+  }
+  function renderGraph(fit=false){
+    const stage=el('graphStage');
+    if(!tasks.length){graphPositions=new Map();stage.innerHTML='';el('graphEmpty').classList.remove('hidden');el('graphEmpty').innerHTML=emptyPanel('No dependencies to show','Right-click the canvas or create tasks to build a dependency tree.');return;}
+    el('graphEmpty').classList.add('hidden');
+    graphPositions=buildLayout();
+    const coords=[...graphPositions.values()];
+    const minX=Math.min(...coords.map(p=>p.x))-52,minY=Math.min(...coords.map(p=>p.y))-53;
+    graphBounds={minX,minY,width:Math.max(...coords.map(p=>p.x+NODE_W))+52-minX,height:Math.max(...coords.map(p=>p.y+NODE_H))+54-minY};
+    const pal=graphPalette(),down=descendants(highlightedId),related=new Set([highlightedId,...down]);
+    const edges=tasks.flatMap(t=>t.dependencies.map(from=>({from,to:t.id}))).map(({from,to})=>{
+      const d=edgeCoordinates(from,to),active=highlightedId&&(from===highlightedId||down.has(from))&&down.has(to),fade=highlightedId&&!active;
+      const stroke=active?pal.active:pal.line;
+      return `<path class="graph-edge" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke="${stroke}" stroke-width="${active?3.2:graphSkin==='skill'?2.3:1.7}" opacity="${fade?.23:1}" marker-end="url(#${active?'arrowActive':'arrowDefault'})" />
+      <path class="graph-edge-hit" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke-width="16"/>`;
+    }).join('');
+    const nodes=tasks.map(t=>graphNode(t,graphPositions.get(t.id),related)).join('');
+    stage.innerHTML=`<defs>
+      <filter id="nodeShadow" x="-30%" y="-30%" width="160%" height="175%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="${appTheme==='midnight'?'#000000':'#283b62'}" flood-opacity="${graphSkin==='skill'?.18:.08}"/></filter>
+      <marker id="treeArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="${pal.line}"/></marker></defs>${edges}${nodes}`;
+    const markerDefault=el('arrowDefault').querySelector('path'),markerActive=el('arrowActive').querySelector('path');
+    markerDefault.setAttribute('fill',pal.line);markerActive.setAttribute('fill',pal.active);
+    if(fit)fitGraph();else applyTransform();
+  }
+  function applyTransform(){el('graphStage').setAttribute('transform',`translate(${transform.x},${transform.y}) scale(${transform.k})`);}
+  function fitGraph(){
+    if(!tasks.length)return;
+    const rect=el('graphSvg').getBoundingClientRect();if(!rect.width||!rect.height)return;
+    const pad=60,scale=Math.min(1.12,Math.max(.14,Math.min((rect.width-pad*2)/graphBounds.width,(rect.height-pad*2)/graphBounds.height)));
+    transform={x:(rect.width-graphBounds.width*scale)/2-graphBounds.minX*scale,y:(rect.height-graphBounds.height*scale)/2-graphBounds.minY*scale,k:scale};
+    applyTransform();
+  }
+  function focusStart(){
+    if(!tasks.length)return;
+    const roots=tasks.filter(t=>!t.dependencies.length).map(t=>graphPositions.get(t.id)).filter(Boolean);
+    if(!roots.length)return fitGraph();
+    const rect=el('graphSvg').getBoundingClientRect();if(!rect.width||!rect.height)return;
+    const minX=Math.min(...roots.map(p=>p.x)),maxX=Math.max(...roots.map(p=>p.x+NODE_W));
+    const minY=Math.min(...roots.map(p=>p.y));
+    const scale=Math.min(1.1,Math.max(.42,(rect.width-115)/(maxX-minX+80)));
+    transform={k:scale,x:rect.width/2-(minX+maxX)/2*scale,y:Math.max(74,rect.height*.12)-minY*scale};
+    applyTransform();
+  }
+  function zoomGraph(factor,clientX=null,clientY=null){
+    if(!tasks.length)return;
+    const r=el('graphSvg').getBoundingClientRect(),x=clientX===null?r.width/2:clientX-r.left,y=clientY===null?r.height/2:clientY-r.top;
+    const next=Math.max(.16,Math.min(3,transform.k*factor)),ratio=next/transform.k;
+    transform={x:x-(x-transform.x)*ratio,y:y-(y-transform.y)*ratio,k:next};applyTransform();
+  }
+  function graphPoint(clientX,clientY){
+    const rect=el('graphSvg').getBoundingClientRect();
+    return {x:(clientX-rect.left-transform.x)/transform.k,y:(clientY-rect.top-transform.y)/transform.k};
+  }
+  function resetLayout(){
+    if(!tasks.length)return;
+    tasks.forEach(t=>{if(t.graphPositions)delete t.graphPositions[graphDirection];});
+    save();renderGraph(true);toast('Nodes auto-arranged.');
+  }
+  function addGraphDependency(from,to){
+    if(from===to){toast('A task cannot depend on itself.');return;}
+    const target=getTask(to);
+    if(!target || !getTask(from))return;
+    if(target.dependencies.includes(from)){toast('That dependency already exists.');return;}
+    target.dependencies.push(from);
+    if(hasCycles(tasks)){target.dependencies.pop();toast('Cannot link tasks: this would create a circular dependency.');return;}
+    save();render();toast('Dependency added.');
+  }
+  function removeGraphDependency(from,to){
+    const task=getTask(to);if(!task)return;
+    task.dependencies=task.dependencies.filter(id=>id!==from);
+    save();render();toast('Dependency removed.');
+  }
+  function hideGraphContext(){el('graphContext').classList.add('hidden');}
+  let contextData=null;
+  function graphContext(clientX,clientY,target){
+    const area=el('graphArea'),menu=el('graphContext'),r=area.getBoundingClientRect();
+    const node=target.closest('.graph-node'),edge=target.closest('.graph-edge-hit');
+    const point=graphPoint(clientX,clientY);
+    contextData={nodeId:node?.dataset.node||null,edgeFrom:edge?.dataset.edgeFrom||null,edgeTo:edge?.dataset.edgeTo||null,position:{x:Math.round(point.x-NODE_W/2),y:Math.round(point.y-NODE_H/2)}};
+    if(edge){
+      const from=getTask(edge.dataset.edgeFrom),to=getTask(edge.dataset.edgeTo);
+      menu.innerHTML=`<button data-graph-action="unlink">Remove dependency</button><div class="separator"></div><div style="padding:7px 9px;font-size:10px;color:var(--muted);line-height:1.5">${html(from?.title||'Task')} → ${html(to?.title||'Task')}</div>`;
+    }else if(node){
+      menu.innerHTML=`<button data-graph-action="edit">Edit task</button><button data-graph-action="child">New dependent task</button><button data-graph-action="complete">Mark completed</button><button data-graph-action="hold">Move to on hold</button><button data-graph-action="todo">Move to to do</button><div class="separator"></div><button data-graph-action="delete">Delete task</button>`;
+    }else{
+      menu.innerHTML=`<button data-graph-action="new">+ New task here</button><button data-graph-action="bulk">Bulk add tasks</button><div class="separator"></div><button data-graph-action="arrange">Auto arrange all nodes</button>`;
+    }
+    menu.classList.remove('hidden');
+    const x=Math.max(6,Math.min(clientX-r.left,area.clientWidth-menu.offsetWidth-6)),y=Math.max(6,Math.min(clientY-r.top,area.clientHeight-menu.offsetHeight-6));
+    menu.style.left=x+'px';menu.style.top=y+'px';
+  }
+
+  // Navigation and form events
+
+  // Supabase shared mode. Local mode remains available even without Internet.
+  function updateCloudIndicator(label){
+    const shared=!!cloudWorkspace;
+    el('cloudPill').textContent=label||(shared?'Shared · '+cloudWorkspace.name:'Local mode');
+    el('cloudPill').classList.toggle('shared',shared);
+    el('sidebarTip').innerHTML=shared
+      ? '<strong>Shared workspace</strong>Your tasks sync with other members. Export a backup whenever you need a copy.'
+      : '<strong>Saved locally</strong>Changes are stored on this device. Select Collaborate to share with teammates.';
+  }
+  function setCloudMessage(msg,isError=false){
+    el('cloudActionMessage').textContent=msg;
+    el('cloudActionMessage').classList.toggle('error',isError);
+  }
+  function cloudAuthUi(){
+    el('cloudAuthSection').classList.toggle('hidden',!cloudDb);
+    el('cloudWorkspaceSection').classList.toggle('hidden',!cloudUser);
+    el('cloudSignOut').classList.toggle('hidden',!cloudUser);
+    el('cloudSignIn').classList.toggle('hidden',!!cloudUser);
+    el('cloudSignUp').classList.toggle('hidden',!!cloudUser);
+    el('cloudAuthInfo').textContent=cloudUser?'Signed in as '+(cloudUser.email||cloudUser.id):'Not signed in.';
+  }
+  function openCollab(){
+    if(el('drawer').classList.contains('visible'))closeDrawer();
+    if(el('bulkModal').classList.contains('visible'))closeBulk();
+    el('collabModal').classList.add('visible');
+    el('collabModal').setAttribute('aria-hidden','false');
+    el('overlay').classList.add('visible');
+    document.body.style.overflow='hidden';
+    cloudAuthUi();
+  }
+  function closeCollab(){
+    el('collabModal').classList.remove('visible');
+    el('collabModal').setAttribute('aria-hidden','true');
+    el('overlay').classList.remove('visible');
+    document.body.style.overflow='';
+  }
+  function cloudCredentials(){
+    const url=el('cloudUrl').value.trim().replace(/\/$/,'');
+    const key=el('cloudKey').value.trim();
+    if(!/^https:\/\/[^/]+\.supabase\.co$/i.test(url))throw Error('Enter a valid https://...supabase.co project URL.');
+    if(!key || /service_role|sb_secret_/i.test(key))throw Error('Use a publishable/anon key, never a secret or service_role key.');
+    return {url,key};
+  }
+  function ensureCloudSdk(){
+    if(window.supabase?.createClient)return Promise.resolve();
+    return new Promise((resolve,reject)=>{
+      const script=document.createElement('script');
+      script.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      script.onload=()=>window.supabase?.createClient?resolve():reject(Error('Supabase library did not load.'));
+      script.onerror=()=>reject(Error('Cannot load Supabase library. Check your network connection.'));
+      document.head.appendChild(script);
+    });
+  }
+  async function connectCloud(useStored=false){
+    try{
+      const config=useStored?JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'null'):cloudCredentials();
+      if(!config)return;
+      await ensureCloudSdk();
+      if(cloudDb && cloudConfig?.url===config.url && cloudConfig?.key===config.key){
+        await refreshCloudAuth();return;
+      }
+      if(cloudWriteBusy)throw Error('Finish saving your shared edits before switching servers.');
+      stopCloudSubscription();
+      if(cloudWorkspace)switchToLocal(false);
+      cloudDb=window.supabase.createClient(config.url,config.key,{
+        auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+      });
+      cloudConfig=config;
+      localStorage.setItem(CLOUD_CONFIG_KEY,JSON.stringify(config));
+      el('cloudUrl').value=config.url;el('cloudKey').value=config.key;
+      el('cloudConnection').textContent='Connected to '+config.url;
+      await refreshCloudAuth();
+      const last=localStorage.getItem(CLOUD_ACTIVE_KEY);
+      if(last && cloudUser)await selectCloudWorkspace(last,true);
+      setCloudMessage('Connection ready.');
+    }catch(e){setCloudMessage('Connection error: '+e.message,true);}
+  }
+  async function refreshCloudAuth(){
+    if(!cloudDb)return;
+    const {data,error}=await cloudDb.auth.getUser();
+    cloudUser=error?null:data?.user||null;
+    cloudAuthUi();
+    if(cloudUser)await listCloudWorkspaces();
+  }
+  async function cloudAuth(action){
+    if(!cloudDb)return setCloudMessage('Connect to Supabase first.',true);
+    const email=el('cloudEmail').value.trim(),password=el('cloudPassword').value;
+    if(!email||!password)return setCloudMessage('Enter your email and password.',true);
+    try{
+      const {data,error}= action==='signup'
+        ? await cloudDb.auth.signUp({email,password})
+        : await cloudDb.auth.signInWithPassword({email,password});
+      if(error)throw error;
+      cloudUser=data.user||null;
+      await refreshCloudAuth();
+      if(!data.session)setCloudMessage('Account created. Check your email to confirm your address, then sign in.');
+      else setCloudMessage('Signed in successfully.');
+    }catch(e){setCloudMessage(e.message,true);}
+  }
+  async function signOutCloud(){
+    if(cloudWriteBusy)return setCloudMessage('Wait for the pending save to complete.',true);
+    switchToLocal();
+    const {error}=await cloudDb.auth.signOut();
+    if(error) return setCloudMessage(error.message,true);
+    cloudUser=null;cloudAuthUi();el('cloudWorkspaces').innerHTML='';
+    setCloudMessage('Signed out. The local project is now open.');
+  }
+  async function listCloudWorkspaces(){
+    if(!cloudDb||!cloudUser)return;
+    const {data,error}=await cloudDb.from('taskgraph_workspaces')
+      .select('id,name,invite_code').order('created_at',{ascending:false});
+    if(error)throw error;
+    el('cloudWorkspaces').innerHTML=(data||[]).length
+      ? data.map(w=>`<button class="btn small ${cloudWorkspace?.id===w.id?'primary':''}" type="button" data-workspace-id="${html(w.id)}">${html(w.name)}</button>`).join('')
+      : '<span class="collab-message">No workspaces yet. Create one or enter an invite code.</span>';
+  }
+  function stopCloudSubscription(){
+    if(cloudChannel && cloudDb){cloudDb.removeChannel(cloudChannel).catch(()=>{});cloudChannel=null;}
+  }
+  function switchToLocal(removeStored=true){
+    if(cloudWriteBusy){setCloudMessage('Save in progress; try again after it completes.',true);return;}
+    stopCloudSubscription();cloudWorkspace=null;cloudRevision=0;cloudQueuedDraft=null;
+    if(removeStored)localStorage.removeItem(CLOUD_ACTIVE_KEY);
+    load();render();if(view==='graph')renderGraph(true);
+    el('cloudCurrent').classList.add('hidden');updateCloudIndicator();
+    if(cloudUser)listCloudWorkspaces().catch(e=>setCloudMessage(e.message,true));
+  }
+  async function reloadCloudWorkspace(id){
+    const {data,error}=await cloudDb.from('taskgraph_workspaces')
+      .select('id,name,invite_code,tasks,revision').eq('id',id).single();
+    if(error)throw error;
+    if(cloudWorkspace?.id!==id)return;
+    if(Number(data.revision)<cloudRevision)return;
+    const clean=validate(data.tasks);
+    cloudWorkspace={id:data.id,name:data.name,invite_code:data.invite_code};
+    tasks=clean;cloudRevision=Number(data.revision);
+    render(); // Preserve the current camera when a teammate changes the graph.
+    updateCloudIndicator();
+    el('cloudWorkspaceLabel').textContent=data.name;
+    el('cloudInviteDisplay').textContent=data.invite_code;
+    el('cloudCurrent').classList.remove('hidden');
+  }
+  async function selectCloudWorkspace(id,silent=false){
+    if(cloudWriteBusy)throw Error('Wait for your pending save to complete.');
+    stopCloudSubscription();
+    cloudWorkspace={id,name:'Loading...',invite_code:''};cloudRevision=-1;
+    try{
+      await reloadCloudWorkspace(id);
+      localStorage.setItem(CLOUD_ACTIVE_KEY,id);
+      cloudChannel=cloudDb.channel('taskgraph-'+id)
+        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'taskgraph_workspaces',filter:'id=eq.'+id},payload=>{
+          if(!cloudWorkspace||cloudWorkspace.id!==id)return;
+          const n=payload.new;
+          if(!n||Number(n.revision)<=cloudRevision)return;
+          if(cloudWriteBusy){cloudRemoteChanged=true;return;}
+          reloadCloudWorkspace(id).catch(e=>setCloudMessage('Synchronization error: '+e.message,true));
+        }).subscribe();
+      await listCloudWorkspaces();
+      if(!silent){toast('Shared workspace opened.');setCloudMessage('Live workspace selected.');}
+      closeCollab();
+    }catch(e){switchToLocal();if(!silent)setCloudMessage('Unable to open workspace: '+e.message,true);}
+  }
+  async function createCloudWorkspace(){
+    if(!cloudUser)return setCloudMessage('Sign in first.',true);
+    try{
+      const name=el('cloudWorkspaceName').value.trim();
+      if(!name)throw Error('Enter a workspace name.');
+      const {data,error}=await cloudDb.rpc('taskgraph_create_workspace',{p_name:name});
+      if(error)throw error;
+      await selectCloudWorkspace(data);
+    }catch(e){setCloudMessage('Create failed: '+e.message,true);}
+  }
+  async function joinCloudWorkspace(){
+    if(!cloudUser)return setCloudMessage('Sign in first.',true);
+    try{
+      const code=el('cloudInviteInput').value.trim();
+      if(!code)throw Error('Paste an invite code.');
+      const {data,error}=await cloudDb.rpc('taskgraph_join_workspace',{p_invite_code:code});
+      if(error)throw error;
+      await selectCloudWorkspace(data);
+    }catch(e){setCloudMessage('Join failed: '+e.message,true);}
+  }
+  async function copyLocalToCloud(){
+    if(!cloudWorkspace)return;
+    try{
+      const stored=localStorage.getItem(STORE_KEY);
+      const local=stored?validate(JSON.parse(stored)):[];
+      if(!local.length)return setCloudMessage('No local tasks to copy.',true);
+      if(!confirm(`Replace all ${tasks.length} shared task(s) with ${local.length} local task(s) for everyone in this workspace?`))return;
+      tasks=local;
+      save();render();
+      setCloudMessage(`Uploading ${local.length} local tasks...`);
+    }catch(e){setCloudMessage(e.message,true);}
+  }
+  async function copyInviteCode(){
+    if(!cloudWorkspace)return;
+    try{await navigator.clipboard.writeText(cloudWorkspace.invite_code);toast('Invite code copied.');}
+    catch(e){
+      // Clipboard API may not exist when opened from file://.
+      const input=el('cloudInviteDisplay');
+      const range=document.createRange();range.selectNodeContents(input);
+      const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+      setCloudMessage('Invite code selected. Press Ctrl+C to copy it.');
+    }
+  }
+  el('navBoard').addEventListener('click',()=>showView('board'));
+  el('navGraph').addEventListener('click',()=>showView('graph'));
+  el('otherViewBtn').addEventListener('click',()=>showView(view==='board'?'graph':'board'));
+  el('addBtn').addEventListener('click',()=>openDrawer());
+  el('quickAddBtn').addEventListener('click',openBulk);
+  el('collabBtn').addEventListener('click',openCollab);
+  el('closeCollab').addEventListener('click',closeCollab);
+  el('cloudConnect').addEventListener('click',()=>connectCloud());
+  el('cloudSignIn').addEventListener('click',()=>cloudAuth('signin'));
+  el('cloudSignUp').addEventListener('click',()=>cloudAuth('signup'));
+  el('cloudSignOut').addEventListener('click',signOutCloud);
+  el('cloudCreateWorkspace').addEventListener('click',createCloudWorkspace);
+  el('cloudJoinWorkspace').addEventListener('click',joinCloudWorkspace);
+  el('cloudCopyInvite').addEventListener('click',copyInviteCode);
+  el('cloudRefresh').addEventListener('click',async()=>{
+    if(!cloudWorkspace)return;
+    if(cloudWriteBusy)return setCloudMessage('A save is still in progress.',true);
+    try{await reloadCloudWorkspace(cloudWorkspace.id);setCloudMessage('Up to date.');}
+    catch(e){setCloudMessage(e.message,true);}
+  });
+  el('cloudDownloadRecovery').addEventListener('click',()=>{
+    try{
+      const draft=localStorage.getItem('taskgraph_unsaved_shared_draft_v1');
+      if(!draft)return setCloudMessage('No unsaved draft is stored in this browser.');
+      const records=validate(JSON.parse(draft));
+      const blob=new Blob([JSON.stringify({app:'TaskGraph',version:1,tasks:records},null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download='taskgraph-unsaved-draft.json';document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1500);
+      setCloudMessage('Unsaved draft downloaded. Inspect it before importing into a shared workspace.');
+    }catch(e){setCloudMessage('Could not download draft: '+e.message,true);}
+  });
+  el('cloudCopyLocal').addEventListener('click',copyLocalToCloud);
+  el('cloudUseLocal').addEventListener('click',()=>{switchToLocal();closeCollab();});
+  el('cloudWorkspaces').addEventListener('click',e=>{const id=e.target.closest('[data-workspace-id]')?.dataset.workspaceId;if(id)selectCloudWorkspace(id).catch(e=>setCloudMessage(e.message,true));});
+
+  el('closeBulk').addEventListener('click',closeBulk);
+  el('cancelBulk').addEventListener('click',closeBulk);
+  el('submitBulk').addEventListener('click',submitBulk);
+  el('bulkInput').addEventListener('input',updateBulkPreview);
+  el('bulkInput').addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==='Enter'&&!el('submitBulk').disabled){e.preventDefault();submitBulk();}
+  });
+  el('bulkExample').addEventListener('click',()=>{el('bulkInput').value=QUICK_EXAMPLE;updateBulkPreview();el('bulkInput').focus();});
+  el('overlay').addEventListener('click',()=>{if(el('collabModal').classList.contains('visible'))closeCollab();else if(el('bulkModal').classList.contains('visible'))closeBulk();else closeDrawer();});
+  el('closeDrawer').addEventListener('click',closeDrawer);
+  el('cancelTask').addEventListener('click',closeDrawer);
+  el('taskForm').addEventListener('submit',submitTask);
+  el('deleteTask').addEventListener('click',deleteTask);
+  el('taskSearch').addEventListener('input',e=>{searchQuery=e.target.value.toLowerCase().trim();renderBoard();});
+  el('exportBtn').addEventListener('click',exportData);
+  el('importBtn').addEventListener('click',()=>el('fileInput').click());
+  el('fileInput').addEventListener('change',e=>importData(e.target.files[0]));
+  el('sampleBtn').addEventListener('click',sampleProject);
+  el('clearBtn').addEventListener('click',clearAll);
+  el('boardContent').addEventListener('click',e=>{
+    if(e.target.closest('[data-create]')){openDrawer();return;}
+    if(e.target.closest('[data-bulk]')){openBulk();return;}
+    if(e.target.closest('[data-sample]')){sampleProject();return;}
+    const card=e.target.closest('.task-card');if(card)openDrawer(card.dataset.id);
+  });
+  el('boardContent').addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('task-card')){e.preventDefault();openDrawer(e.target.dataset.id);}
+  });
+  el('boardContent').addEventListener('dragstart',e=>{
+    const card=e.target.closest('.task-card');if(!card)return;
+    dragId=card.dataset.id;
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain',dragId);
+    setTimeout(()=>card.classList.add('dragging'),0);
+  });
+  el('boardContent').addEventListener('dragend',()=>{
+    dragId=null; document.querySelectorAll('.dragging,.drag-over').forEach(node=>node.classList.remove('dragging','drag-over'));
+  });
+  el('boardContent').addEventListener('dragover',e=>{
+    const col=e.target.closest('.board-column');if(!col)return;
+    e.preventDefault();e.dataTransfer.dropEffect='move';
+    document.querySelectorAll('.drag-over').forEach(node=>node!==col&&node.classList.remove('drag-over'));
+    col.classList.add('drag-over');
+  });
+  el('boardContent').addEventListener('drop',e=>{
+    const col=e.target.closest('.board-column');if(!col)return;
+    e.preventDefault();const id=dragId||e.dataTransfer.getData('text/plain');
+    document.querySelectorAll('.drag-over').forEach(node=>node.classList.remove('drag-over'));
+    moveTask(id,col.dataset.status);dragId=null;
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape') {hideGraphContext();el('appearancePanel').classList.add('hidden');el('appearanceBtn').setAttribute('aria-expanded','false');}
+    if(e.key==='Escape'&&el('collabModal').classList.contains('visible'))closeCollab();
+    else if(e.key==='Escape'&&el('bulkModal').classList.contains('visible'))closeBulk();
+    else if(e.key==='Escape'&&el('drawer').classList.contains('visible'))closeDrawer();
+    if(e.key.toLowerCase()==='n'&&!el('drawer').classList.contains('visible')&&!el('bulkModal').classList.contains('visible')&&!el('collabModal').classList.contains('visible')&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName))openDrawer();
+  });
+
+  // Edit graph directly: pan, move nodes, draw arrows, context actions.
+  const svg=el('graphSvg');
+  let pointer=null,ignoreGraphClick=false;
+  function cancelPointer(){
+    if(pointer?.id!=null && svg.hasPointerCapture(pointer.id))svg.releasePointerCapture(pointer.id);
+    pointer=null;svg.classList.remove('panning');
+    el('connectionDraft')?.remove();
+  }
+  svg.addEventListener('pointerdown',e=>{
+    if(e.button!==0)return;
+    hideGraphContext();
+    const node=e.target.closest('.graph-node'),port=e.target.closest('.graph-port');
+    if(port?.dataset.port==='out'){
+      const from=node.dataset.node;
+      pointer={id:e.pointerId,mode:'link',from};
+      const draft=document.createElementNS('http://www.w3.org/2000/svg','path');
+      draft.id='connectionDraft';draft.setAttribute('fill','none');draft.setAttribute('stroke',graphPalette().active);draft.setAttribute('stroke-width','3');draft.setAttribute('stroke-dasharray','7 6');draft.style.pointerEvents='none';
+      el('graphStage').appendChild(draft);
+    }else if(node){
+      const id=node.dataset.node,position=graphPositions.get(id);
+      pointer={id:e.pointerId,mode:'node',nodeId:id,x:e.clientX,y:e.clientY,origin:{x:position.x,y:position.y},moved:false};
+    }else if(!e.target.closest('.graph-edge-hit')){
+      pointer={id:e.pointerId,mode:'pan',x:e.clientX,y:e.clientY,startX:transform.x,startY:transform.y,moved:false};
+      svg.classList.add('panning');
+    }
+    if(pointer){svg.setPointerCapture(e.pointerId);e.preventDefault();}
+  });
+  svg.addEventListener('pointermove',e=>{
+    if(!pointer||pointer.id!==e.pointerId)return;
+    if(pointer.mode==='pan'){
+      if(Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)>3)pointer.moved=true;
+      transform.x=pointer.startX+e.clientX-pointer.x;transform.y=pointer.startY+e.clientY-pointer.y;applyTransform();
+    }else if(pointer.mode==='node'){
+      const dx=(e.clientX-pointer.x)/transform.k,dy=(e.clientY-pointer.y)/transform.k;
+      if(Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)>4)pointer.moved=true;
+      if(pointer.moved){
+        const p=graphPositions.get(pointer.nodeId);p.x=Math.round(pointer.origin.x+dx);p.y=Math.round(pointer.origin.y+dy);
+        const current=el('graphStage').querySelector(`[data-node="${CSS.escape(pointer.nodeId)}"]`);
+        if(current){current.setAttribute('transform',`translate(${p.x} ${p.y})`);current.classList.add('is-dragging');}
+        updateGraphGeometry();
+      }
+    }else if(pointer.mode==='link'){
+      const p=graphPositions.get(pointer.from),a=graphPoint(e.clientX,e.clientY),vertical=graphDirection==='vertical';
+      const x=p.x+(vertical?NODE_W/2:NODE_W),y=p.y+(vertical?NODE_H:NODE_H/2);
+      const curve=vertical?`M ${x} ${y} C ${x} ${y+72},${a.x} ${a.y-72},${a.x} ${a.y}`:`M ${x} ${y} C ${x+85} ${y},${a.x-85} ${a.y},${a.x} ${a.y}`;
+      el('connectionDraft')?.setAttribute('d',curve);
+    }
+  });
+  function endGraphPointer(e){
+    if(!pointer||pointer.id!==e.pointerId)return;
+    const done=pointer;
+    if(done.mode==='link'){
+      // On pointer capture the event target stays SVG; hit-test at the release coordinates.
+      const hit=document.elementFromPoint(e.clientX,e.clientY)?.closest('.graph-node');
+      cancelPointer();ignoreGraphClick=true;
+      if(hit)addGraphDependency(done.from,hit.dataset.node);
+      else toast('Drop the connection onto another task to link them.');
+    }else if(done.mode==='node'){
+      cancelPointer();ignoreGraphClick=true;
+      if(done.moved){
+        const p=graphPositions.get(done.nodeId),task=getTask(done.nodeId);
+        if(task){task.graphPositions??={};task.graphPositions[graphDirection]={x:p.x,y:p.y};save();}
+        renderGraph(false);
+      }else openDrawer(done.nodeId);
+    }else{
+      cancelPointer();ignoreGraphClick=done.moved;
+    }
+  }
+  svg.addEventListener('pointerup',endGraphPointer);
+  svg.addEventListener('pointercancel',cancelPointer);
+  svg.addEventListener('wheel',e=>{e.preventDefault();hideGraphContext();zoomGraph(e.deltaY<0?1.12:1/1.12,e.clientX,e.clientY);},{passive:false});
+  svg.addEventListener('click',e=>{if(ignoreGraphClick){ignoreGraphClick=false;return;}});
+  svg.addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===' ')&&e.target.closest('.graph-node')){e.preventDefault();openDrawer(e.target.closest('.graph-node').dataset.node);}
+  });
+  svg.addEventListener('contextmenu',e=>{e.preventDefault();cancelPointer();graphContext(e.clientX,e.clientY,e.target);});
+  el('graphContext').addEventListener('click',e=>{
+    const action=e.target.closest('[data-graph-action]')?.dataset.graphAction;
+    if(!action||!contextData)return;
+    const c=contextData;hideGraphContext();
+    if(action==='new')openDrawer(null,{position:c.position});
+    else if(action==='child'){
+      const p=graphPositions.get(c.nodeId),pos=graphDirection==='vertical'?{x:p.x,y:p.y+205}:{x:p.x+316,y:p.y};
+      openDrawer(null,{position:pos,dependency:c.nodeId});
+    }
+    else if(action==='edit')openDrawer(c.nodeId);
+    else if(action==='complete')moveTask(c.nodeId,'completed');
+    else if(action==='hold')moveTask(c.nodeId,'on-hold');
+    else if(action==='todo')moveTask(c.nodeId,'todo');
+    else if(action==='delete'){openDrawer(c.nodeId);deleteTask();}
+    else if(action==='unlink')removeGraphDependency(c.edgeFrom,c.edgeTo);
+    else if(action==='bulk')openBulk();
+    else if(action==='arrange')resetLayout();
+  });
+  document.addEventListener('pointerdown',e=>{
+    if(!e.target.closest('#graphContext')&&!e.target.closest('#graphSvg'))hideGraphContext();
+    if(!e.target.closest('#appearancePanel')&&!e.target.closest('#appearanceBtn')){el('appearancePanel').classList.add('hidden');el('appearanceBtn').setAttribute('aria-expanded','false');}
+  });
+  el('graphEmpty').addEventListener('click',e=>{if(e.target.closest('[data-create]'))openDrawer();else if(e.target.closest('[data-bulk]'))openBulk();else if(e.target.closest('[data-sample]'))sampleProject();});
+  el('zoomIn').addEventListener('click',()=>zoomGraph(1.25));
+  el('zoomOut').addEventListener('click',()=>zoomGraph(.8));
+  el('fitBtn').addEventListener('click',fitGraph);
+  el('fitBtnTop').addEventListener('click',fitGraph);
+  el('autoLayoutBtn').addEventListener('click',resetLayout);
+  el('focusStartBtn').addEventListener('click',focusStart);
+  el('graphDirection').addEventListener('change',e=>{graphDirection=e.target.value;applyAppearance();});
+  el('appearanceBtn').addEventListener('click',()=>{
+    const panel=el('appearancePanel'),open=panel.classList.toggle('hidden')===false;
+    el('appearanceBtn').setAttribute('aria-expanded',String(open));
+  });
+  el('appearancePanel').addEventListener('click',e=>{
+    const b=e.target.closest('[data-theme-choice],[data-layout-choice],[data-skin-choice]');if(!b)return;
+    if(b.dataset.themeChoice)appTheme=b.dataset.themeChoice;
+    if(b.dataset.layoutChoice)appLayout=b.dataset.layoutChoice;
+    if(b.dataset.skinChoice)graphSkin=b.dataset.skinChoice;
+    applyAppearance();
+  });
+  if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(view==='graph')applyTransform();}).observe(el('graphArea'));
+  loadAppearance();load();render();updateCloudIndicator();
+  // Restore a previously opened shared workspace when online.
+  try {
+    const savedConfig=JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'null');
+    if(savedConfig){el('cloudUrl').value=savedConfig.url||'';el('cloudKey').value=savedConfig.key||'';connectCloud(true);}
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
