@@ -396,7 +396,7 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
 <section class="collab-modal" id="collabModal" role="dialog" aria-modal="true" aria-labelledby="collabTitle" aria-hidden="true">
   <div class="collab-head"><strong id="collabTitle">Team collaboration</strong><button class="close" id="closeCollab" aria-label="Close collaboration settings">×</button></div>
   <div class="collab-body">
-    <div class="collab-section">
+    <div class="collab-section" id="cloudConfigSection">
       <h3>1. Connect your Supabase project</h3>
       <p>Run the included SQL setup in your Supabase project, then enter its Project URL and publishable (or legacy anon) key. Never enter a service_role or secret API key. This configuration is saved only in this browser.</p>
       <div class="collab-row"><div class="field"><label for="cloudUrl">Supabase Project URL</label><input id="cloudUrl" type="url" placeholder="https://your-project.supabase.co" autocomplete="off" /></div></div>
@@ -404,14 +404,14 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
       <div id="cloudConnection" class="collab-message">Not connected.</div>
     </div>
     <div class="collab-section hidden" id="cloudAuthSection">
-      <h3>2. Sign in or create an account</h3>
+      <h3 id="cloudAuthTitle">2. Sign in or create an account</h3>
       <p>Each person uses their own email and password. Sign-up may require email confirmation, depending on your Supabase settings.</p>
       <div class="collab-row"><div class="field"><label for="cloudEmail">Email</label><input id="cloudEmail" type="email" placeholder="you@example.com" autocomplete="email" /></div><div class="field"><label for="cloudPassword">Password</label><input id="cloudPassword" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" /></div></div>
       <div class="collab-row"><button class="btn primary" id="cloudSignIn" type="button">Sign in</button><button class="btn" id="cloudSignUp" type="button">Create account</button><button class="btn hidden" id="cloudSignOut" type="button">Sign out</button></div>
       <div id="cloudAuthInfo" class="collab-message"></div>
     </div>
     <div class="collab-section hidden" id="cloudWorkspaceSection">
-      <h3>3. Create or join a shared workspace</h3>
+      <h3 id="cloudWorkspaceTitle">3. Create or join a shared workspace</h3>
       <div class="collab-row"><div class="field"><label for="cloudWorkspaceName">New workspace name</label><input id="cloudWorkspaceName" placeholder="Engineering project" maxlength="120" /></div><button class="btn" id="cloudCreateWorkspace" type="button">Create</button></div>
       <div class="collab-row"><div class="field"><label for="cloudInviteInput">Teammate's invite code</label><input id="cloudInviteInput" placeholder="Paste invite code here" spellcheck="false" autocomplete="off" /></div><button class="btn" id="cloudJoinWorkspace" type="button">Join</button></div>
       <div class="collab-message">Your shared workspaces:</div><div class="collab-workspaces" id="cloudWorkspaces"></div>
@@ -431,6 +431,11 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
 <script>
 (() => {
   'use strict';
+  // ONE-TIME OWNER SETUP: Paste your Supabase Project URL and PUBLISHABLE key below.
+  // These two values are public browser configuration, NOT a database password.
+  // Never paste a service_role or sb_secret_ key here.
+  const HOSTED_SUPABASE_URL = 'https://blsmtxtbtdhiihxrogpp.supabase.co';
+  const HOSTED_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_IY4awSF75ZST4gh3A_7dlg_rFAI453H';
   const STORE_KEY = 'taskgraph_workspace_v1';
   const CLOUD_CONFIG_KEY = 'taskgraph_shared_config_v1';
   const CLOUD_ACTIVE_KEY = 'taskgraph_shared_workspace_v1';
@@ -1073,6 +1078,13 @@ System testing | Sam | Testing | Assemble prototype`;
     el('overlay').classList.remove('visible');
     document.body.style.overflow='';
   }
+  function hostedCloudCredentials(){
+    const url=HOSTED_SUPABASE_URL.trim().replace(/\/$/,'');
+    const key=HOSTED_SUPABASE_PUBLISHABLE_KEY.trim();
+    if(!url || !key || url==='PASTE_YOUR_PROJECT_URL_HERE' || key==='PASTE_YOUR_PUBLISHABLE_KEY_HERE')return null;
+    if(!/^https:\/\/[^/]+\.supabase\.co$/i.test(url) || /service_role|sb_secret_/i.test(key))return null;
+    return {url,key};
+  }
   function cloudCredentials(){
     const url=el('cloudUrl').value.trim().replace(/\/$/,'');
     const key=el('cloudKey').value.trim();
@@ -1092,7 +1104,7 @@ System testing | Sam | Testing | Assemble prototype`;
   }
   async function connectCloud(useStored=false){
     try{
-      const config=useStored?JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'null'):cloudCredentials();
+      const config=hostedCloudCredentials() || (useStored?JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'null'):cloudCredentials());
       if(!config)return;
       await ensureCloudSdk();
       if(cloudDb && cloudConfig?.url===config.url && cloudConfig?.key===config.key){
@@ -1455,10 +1467,19 @@ System testing | Sam | Testing | Assemble prototype`;
   });
   if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{if(view==='graph')applyTransform();}).observe(el('graphArea'));
   loadAppearance();load();render();updateCloudIndicator();
-  // Restore a previously opened shared workspace when online.
+  // When owner has embedded the public Supabase connection, visitors only sign up/sign in.
+  // If the owner hasn't configured it yet, the original manual connection UI remains usable.
   try {
-    const savedConfig=JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'null');
-    if(savedConfig){el('cloudUrl').value=savedConfig.url||'';el('cloudKey').value=savedConfig.key||'';connectCloud(true);}
+    const hostedConfig=hostedCloudCredentials();
+    if(hostedConfig){
+      el('cloudConfigSection').classList.add('hidden');
+      el('cloudAuthTitle').textContent='1. Sign in or create an account';
+      el('cloudWorkspaceTitle').textContent='2. Create or join a shared workspace';
+      connectCloud(true);
+    }else{
+      const savedConfig=JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'null');
+      if(savedConfig){el('cloudUrl').value=savedConfig.url||'';el('cloudKey').value=savedConfig.key||'';connectCloud(true);}
+    }
   }catch(e){}
 })();
 </script>
