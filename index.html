@@ -426,7 +426,53 @@ body[data-layout="command"] .task-card{border-left:3px solid var(--card-accent);
     body[data-layout="top"] .metrics, body[data-layout="focus"] .metrics {grid-template-columns:repeat(5,minmax(0,1fr));}
     @media(max-width:1000px){.metrics,body[data-layout="top"] .metrics,body[data-layout="focus"] .metrics{grid-template-columns:repeat(3,1fr);}}
     @media(max-width:650px){.metrics,body[data-layout="top"] .metrics,body[data-layout="focus"] .metrics{grid-template-columns:repeat(2,1fr);}}
-  </style>
+  
+    /* TaskGraph v3.1: two deliberately distinct fantasy graph art directions. */
+    .column-filters { flex-wrap:wrap; }
+    .column-filters select[data-filter-key="assignee"] { flex:1 1 112px;min-width:90px;max-width:100%; }
+    .graph-area.skill-tree {
+      background-color:#0b1d22!important;
+      background-image:radial-gradient(ellipse at 45% 30%,#345952 0%,transparent 55%),
+        radial-gradient(ellipse at 95% 95%,#173e50 0%,transparent 42%),
+        repeating-radial-gradient(circle at 55% 45%,transparent 0 56px,#e4d6a60a 57px 58px),
+        linear-gradient(135deg,#122c31,#081923 75%)!important;
+      background-size:100% 100%!important;
+    }
+    .graph-area.skill-tree::before {content:"";position:absolute;inset:0;pointer-events:none;
+      background-image:radial-gradient(circle,#f2e2b7a8 1px,transparent 1.8px),radial-gradient(circle,#86d1b772 1px,transparent 2px);
+      background-size:69px 93px,119px 131px;background-position:8px 12px,42px 25px;opacity:.4; }
+    .graph-area.orb-field {
+      background-color:#070921!important;
+      background-image:radial-gradient(ellipse at 24% 24%,#4a1e79a8,transparent 42%),
+        radial-gradient(ellipse at 76% 69%,#0d8a94a3,transparent 45%),
+        radial-gradient(ellipse at 82% 12%,#2858b39a,transparent 33%),
+        radial-gradient(ellipse at 18% 85%,#9d38779c,transparent 42%),
+        linear-gradient(150deg,#070a1c,#161032 51%,#071b33)!important;
+      background-size:100% 100%!important;
+    }
+    .graph-area.orb-field::before { content:"";position:absolute;inset:0;pointer-events:none;opacity:.8;
+      background-image:radial-gradient(circle,#ffffffd8 .75px,transparent 1.5px),radial-gradient(circle,#a4d7ff8c 1px,transparent 2px),radial-gradient(circle,#ffffff91 .6px,transparent 1.4px);
+      background-position:12px 31px,68px 10px,19px 82px;background-size:83px 111px,157px 131px,43px 79px; }
+    .graph-area.orb-field::after { content:"";position:absolute;inset:0;pointer-events:none;
+      background:radial-gradient(ellipse at 40% 49%,#fa83bd15,transparent 37%),radial-gradient(ellipse at 60% 80%,#60ddeb16,transparent 38%); }
+    .graph-area:is(.orb-field,.skill-tree) .graph-guide,
+    .graph-area:is(.orb-field,.skill-tree) .graph-legend,
+    .graph-area:is(.orb-field,.skill-tree) .graph-tips {
+      background:#0d1730d9!important;color:#e3def8!important;border-color:#e1d8ff3b!important;
+      backdrop-filter:blur(13px);box-shadow:0 10px 35px #02051566;
+    }
+    .graph-area:is(.orb-field,.skill-tree) .graph-controls {background:#15152add!important;border-color:#d1baff44!important;backdrop-filter:blur(12px);}
+    .graph-area:is(.orb-field,.skill-tree) .graph-controls button {color:#f3edff!important;}
+    .graph-area:is(.orb-field,.skill-tree) .graph-controls button:hover {background:#d0baff24!important;}
+    .graph-area.orb-field .graph-node,.graph-area.skill-tree .graph-node {filter:drop-shadow(0 9px 15px #0008);}
+    .graph-area.orb-field .graph-edge-checkpoint {animation:checkpoint-flow 6s linear infinite;}
+    .graph-area.skill-tree .graph-edge-checkpoint {animation:checkpoint-flow 8s linear infinite;}
+    .graph-milestone-complete .checkpoint-halo {animation:milestone-breathe 2.8s ease-in-out infinite;transform-origin:124px 86px;}
+    .graph-milestone-complete .milestone-sparkle {animation:milestone-breathe 2s ease-in-out infinite alternate;}
+    @keyframes milestone-breathe{0%,100%{opacity:.43}50%{opacity:1}}
+    @keyframes checkpoint-flow{to{stroke-dashoffset:-64}}
+    @media(prefers-reduced-motion:reduce){.graph-milestone-complete .checkpoint-halo,.graph-milestone-complete .milestone-sparkle,.graph-area .graph-edge-checkpoint{animation:none!important;}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -493,7 +539,7 @@ body[data-layout="command"] .task-card{border-left:3px solid var(--card-accent);
         <div class="graph-guide">Drag nodes to rearrange · Drag from ● output to ● input to link · Right-click for actions</div>
         <div class="graph-controls"><button class="btn" id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button><button class="btn" id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button><button class="btn" id="fitBtn" title="Fit graph" aria-label="Fit graph">⤢</button></div>
         <div class="graph-legend"><span><i style="background:#357bcc"></i>Ready</span><span><i style="background:#8795aa"></i>Blocked</span><span><i style="background:#bb8127"></i>On hold</span><span><i style="background:#23936c"></i>Completed</span></div>
-        <div class="graph-tips">Click a task to edit · Right-click a connection to remove it</div><div class="graph-context hidden" id="graphContext" role="menu"></div>
+        <div class="graph-tips">Solid arrows: prerequisites · Glowing dashed lines: milestone checkpoints · Click a task to edit</div><div class="graph-context hidden" id="graphContext" role="menu"></div>
         <div class="graph-empty hidden" id="graphEmpty"></div>
       </div>
     </section>
@@ -584,8 +630,8 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
   // ONE-TIME OWNER SETUP: Paste your Supabase Project URL and PUBLISHABLE key below.
   // These two values are public browser configuration, NOT a database password.
   // Never paste a service_role or sb_secret_ key here.
-  const HOSTED_SUPABASE_URL = 'https://blsmtxtbtdhiihxrogpp.supabase.co';
-  const HOSTED_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_IY4awSF75ZST4gh3A_7dlg_rFAI453H';
+  const HOSTED_SUPABASE_URL = 'PASTE_YOUR_PROJECT_URL_HERE';
+  const HOSTED_SUPABASE_PUBLISHABLE_KEY = 'PASTE_YOUR_PUBLISHABLE_KEY_HERE';
   const STORE_KEY = 'taskgraph_workspace_v1';
   const CLOUD_CONFIG_KEY = 'taskgraph_shared_config_v1';
   const CLOUD_ACTIVE_KEY = 'taskgraph_shared_workspace_v1';
@@ -734,7 +780,7 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
     document.querySelectorAll('[data-layout-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.layoutChoice===appLayout)));
     document.querySelectorAll('[data-skin-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.skinChoice===graphSkin)));
     try{localStorage.setItem(APPEARANCE_KEY,JSON.stringify({theme:appTheme,layout:appLayout,skin:graphSkin,direction:graphDirection}));}catch(e){}
-    if(view==='graph')requestAnimationFrame(()=>renderGraph(true));
+    if(view==='graph')requestAnimationFrame(()=>renderGraph(false));
   }
   function validate(value) {
     const input = Array.isArray(value) ? value : value?.tasks;
@@ -789,18 +835,18 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
       <div class="card-footer"><div class="assignee"><span class="avatar ${t.assignee?'':'empty'}">${html(initial)}</span><span>${html(t.assignee||'Unassigned')}</span></div><span class="milestone">${html(projectSettings.milestones.find(m=>m.id===t.milestoneId)?.title||t.milestone||'—')}</span></div>
     </div>`;
   }
-  function renderBoard(){
-    const target=el('boardContent');
+  function renderBoard(target=el('boardContent')){
     el('trashCount').textContent=tasks.filter(t=>t.trashed).length;
     const active=activeTasks();
     document.querySelector('.board')?.style?.setProperty('--board-cols', projectSettings.statuses.length);
     if(!active.length){target.innerHTML=emptyPanel('Build your project plan','Create tasks, subtasks and milestone checkpoints, or paste a task list.');return;}
     const matching=active.filter(t=>(t.title+' '+t.description+' '+t.assignee+' '+t.milestone+' '+(projectSettings.milestones.find(m=>m.id===t.milestoneId)?.title||'')).toLowerCase().includes(searchQuery));
     target.innerHTML=`<div class="board" style="--board-cols:${projectSettings.statuses.length}">${projectSettings.statuses.map(st=>{
-      const pref=boardPrefs[st.id]||{filter:'all',sort:'oldest',search:''};
+      const pref=boardPrefs[st.id]||{filter:'all',sort:'oldest',search:'',assignee:'all'};
       const base=matching.filter(t=>t.status===st.id);
       const list=base.filter(t=>{
         if(pref.search&&!(`${t.title} ${t.description} ${t.assignee}`.toLowerCase().includes(pref.search.toLowerCase())))return false;
+        if(pref.assignee&&pref.assignee!=='all'&&(pref.assignee==='__unassigned__'?!!t.assignee.trim():t.assignee.trim()!==pref.assignee))return false;
         if(pref.filter==='ready')return prerequisitesDone(t);
         if(pref.filter==='blocked')return !prerequisitesDone(t);
         if(pref.filter==='top')return !t.parentId;
@@ -809,6 +855,7 @@ Assemble prototype | Jordan | Prototype | Sketch design, Order parts"></textarea
       return `<div class="board-column" data-status="${html(st.id)}" style="--status-color:${html(st.color)}"><div class="column-heading"><div class="column-title"><i></i>${html(st.label)}</div><span class="count">${list.length}${list.length!==base.length?` / ${base.length}`:''}</span></div>
       <div class="column-filters"><input class="column-search" data-filter-column="${html(st.id)}" data-filter-key="search" placeholder="Search column" value="${html(pref.search)}" aria-label="Search ${html(st.label)}" />
       <select data-filter-column="${html(st.id)}" data-filter-key="filter" aria-label="Filter ${html(st.label)}">${[['all','All tasks'],['ready','Ready'],['blocked','Blocked'],['top','Top-level']].map(([id,label])=>`<option value="${id}" ${pref.filter===id?'selected':''}>${label}</option>`).join('')}</select>
+      <select data-filter-column="${html(st.id)}" data-filter-key="assignee" aria-label="Assignee filter for ${html(st.label)}"><option value="all">Any assignee</option>${[...new Set(active.map(t=>t.assignee.trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b)).map(name=>`<option value="${html(name)}" ${pref.assignee===name?'selected':''}>${html(name)}</option>`).join('')}<option value="__unassigned__" ${pref.assignee==='__unassigned__'?'selected':''}>Unassigned</option></select>
       <select data-filter-column="${html(st.id)}" data-filter-key="sort" aria-label="Sort ${html(st.label)}">${[['oldest','Oldest'],['newest','Newest'],['name','A–Z'],['owner','Assignee'],['deps','Dependencies']].map(([id,label])=>`<option value="${id}" ${pref.sort===id?'selected':''}>${label}</option>`).join('')}</select></div>
       <div class="task-list">${list.map(cardMarkup).join('')||'<div class="column-empty">No matching tasks · Drop a task here</div>'}</div></div>`;
     }).join('')}</div>`;
@@ -1134,7 +1181,7 @@ System testing | Sam | Testing | Assemble prototype`;
     tasks.forEach(t=>{if(!oldIds.has(t.status))t.status=fallback;});
     projectSettings.statuses=edited;syncStatuses();updateStatusUi();save();render();closeStudio();toast('Pipeline settings saved for this workspace.');
   }
-  function milestoneCount(m){const assigned=activeTasks().filter(t=>t.milestoneId===m.id || (!t.milestoneId&&t.milestone?.toLowerCase()===m.title.toLowerCase()));return {total:assigned.length,done:assigned.filter(completion).length,assigned};}
+  function milestoneCount(m){const milestoneId=m.isMilestone&&m.id.startsWith('ms:')?m.id.slice(3):m.id;const assigned=activeTasks().filter(t=>t.milestoneId===milestoneId || (!t.milestoneId&&t.milestone?.toLowerCase()===m.title.toLowerCase()));return {total:assigned.length,done:assigned.filter(completion).length,assigned};}
   function milestoneEditor(id=null){
     editingMilestone=id;studioMode='milestone';const m=projectSettings.milestones.find(m=>m.id===id);
     openStudio(m?'Edit milestone':'New milestone',`<div class="field"><label for="msTitle">Milestone title</label><input id="msTitle" maxlength="100" placeholder="First playable prototype" value="${html(m?.title||'')}" /></div><div class="field"><label for="msDescription">Description</label><textarea id="msDescription" placeholder="A checkpoint to work toward">${html(m?.description||'')}</textarea></div><div class="field"><label for="msColor">Checkpoint color</label><input type="color" id="msColor" value="${html(m?.color||'#b58df0')}" /></div>${m?'<button class="btn danger" type="button" id="deleteMilestoneBtn">Delete milestone</button>':''}`,saveMilestone);
@@ -1160,29 +1207,91 @@ System testing | Sam | Testing | Assemble prototype`;
   // Dependency canvas: vertical or horizontal layouts with independent saved positions.
   const NODE_W=248,NODE_H=178;
   function graphItems(){
-    const parents=parentsOnly();
-    const ids=new Set(parents.map(p=>p.id));
-    const rootFor=id=>{let t=getTask(id),seen=new Set();while(t?.parentId&&!seen.has(t.id)&&!ids.has(t.id)){seen.add(t.id);t=getTask(t.parentId);}return t?.id||id;};
-    const edges=[];
-    for(const t of activeTasks())for(const dep of t.dependencies){const from=rootFor(dep),to=rootFor(t.id);if(from!==to&&ids.has(from)&&ids.has(to))edges.push({from,to});}
-    const dedup=[...new Map(edges.map(e=>[e.from+':'+e.to,e])).values()];
-    const ms=projectSettings.milestones.map(m=>({...m,id:'ms:'+m.id,isMilestone:true}));
-    for(const m of ms){const assigned=milestoneCount(m);for(const t of assigned.assigned){const from=rootFor(t.id);if(ids.has(from))dedup.push({from,to:m.id});}}
-    return {nodes:[...parents,...ms],edges:dedup};
+    const parents=parentsOnly(),ids=new Set(parents.map(p=>p.id));
+    const rootFor=id=>{
+      let t=getTask(id),seen=new Set();
+      while(t?.parentId&&!seen.has(t.id)&&!ids.has(t.id)){
+        seen.add(t.id);t=getTask(t.parentId);
+      }
+      return t?.id||id;
+    };
+    const taskEdges=[];
+    for(const t of activeTasks())for(const dep of t.dependencies){
+      const from=rootFor(dep),to=rootFor(t.id);
+      if(from!==to&&ids.has(from)&&ids.has(to))taskEdges.push({from,to,kind:'task'});
+    }
+    const uniqueTaskEdges=[...new Map(taskEdges.map(e=>[e.from+':'+e.to,e])).values()];
+    const milestones=projectSettings.milestones.map(m=>({...m,id:'ms:'+m.id,isMilestone:true}));
+    const milestoneEdges=[];
+    for(const m of milestones){
+      const assigned=milestoneCount(m).assigned;
+      const assignedRoots=new Set(assigned.map(t=>rootFor(t.id)).filter(id=>ids.has(id)));
+      // A milestone gathers only the terminal roots inside *its own* stage.
+      // Work outside that milestone, including later milestones, may continue.
+      const terminals=[...assignedRoots].filter(id=>
+        !uniqueTaskEdges.some(e=>e.from===id&&assignedRoots.has(e.to))
+      );
+      for(const from of terminals)milestoneEdges.push({from,to:m.id,kind:'milestone',color:m.color});
+    }
+    return {nodes:[...parents,...milestones],edges:[...uniqueTaskEdges,...milestoneEdges]};
   }
   function buildLayout(){
-    const {nodes,edges}=graphItems(),byId=new Map(nodes.map(t=>[t.id,t])),depths=new Map();
-    const depth=id=>{if(depths.has(id))return depths.get(id);const prereqs=edges.filter(e=>e.to===id).map(e=>e.from);const d=prereqs.length?Math.max(...prereqs.map(depth))+1:0;depths.set(id,d);return d;};
-    nodes.forEach(t=>depth(t.id));
-    const groups=[];nodes.forEach(t=>(groups[depths.get(t.id)]??=[]).push(t));
+    const {nodes,edges}=graphItems();
+    const taskNodes=nodes.filter(t=>!t.isMilestone),milestones=nodes.filter(t=>t.isMilestone);
+    const taskEdges=edges.filter(e=>e.kind==='task');
+    const depths=new Map(),visiting=new Set();
+    const depth=id=>{
+      if(depths.has(id))return depths.get(id);
+      if(visiting.has(id))return 0;
+      visiting.add(id);
+      const prereqs=taskEdges.filter(e=>e.to===id).map(e=>e.from);
+      const value=prereqs.length?Math.max(...prereqs.map(depth))+1:0;
+      visiting.delete(id);depths.set(id,value);return value;
+    };
+    taskNodes.forEach(t=>depth(t.id));
+    const groups=[];taskNodes.forEach(t=>(groups[depths.get(t.id)]??=[]).push(t));
     const positions=new Map();
     groups.forEach((group,layer)=>{
-      group.sort((a,b)=>a.isMilestone===b.isMilestone?((a.createdAt||0)-(b.createdAt||0)):a.isMilestone?1:-1);
-      group.forEach((t,index)=>positions.set(t.id,{index,...(graphDirection==='vertical'?{x:100+index*328,y:100+layer*268}:{x:110+layer*365,y:100+index*248})}));
+      group.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+      group.forEach((t,index)=>positions.set(t.id,graphDirection==='vertical'
+        ?{x:110+index*338,y:105+layer*280}
+        :{x:110+layer*368,y:105+index*250}));
     });
-    if(graphDirection==='vertical'){const largest=Math.max(1,...groups.map(g=>g.length));groups.forEach(group=>group.forEach(t=>positions.get(t.id).x+=(largest-group.length)*164));}
-    else{const largest=Math.max(1,...groups.map(g=>g.length));groups.forEach(group=>group.forEach(t=>positions.get(t.id).y+=(largest-group.length)*124));}
-    nodes.forEach(t=>{const saved=t.graphPositions?.[graphDirection];if(saved)Object.assign(positions.get(t.id),{x:saved.x,y:saved.y});});
+    if(graphDirection==='vertical'){
+      const widest=Math.max(1,...groups.map(g=>g.length));
+      groups.forEach(g=>g.forEach(t=>positions.get(t.id).x+=(widest-g.length)*169));
+    }else{
+      const tallest=Math.max(1,...groups.map(g=>g.length));
+      groups.forEach(g=>g.forEach(t=>positions.get(t.id).y+=(tallest-g.length)*125));
+    }
+    // Place checkpoints after the terminal tasks they collect, without
+    // allowing checkpoint links to change task-to-task dependency layering.
+    const occupied=[];
+    // Checkpoints occupy their own side lane, like a stage marker beside a
+    // branching skill tree, so the dependency tree can continue underneath.
+    const taskCoords=[...positions.values()];
+    const checkpointLaneX=Math.max(110,...taskCoords.map(p=>p.x))+362;
+    const checkpointLaneY=Math.max(105,...taskCoords.map(p=>p.y))+275;
+    milestones.forEach((m,i)=>{
+      const endpoints=edges.filter(e=>e.kind==='milestone'&&e.to===m.id)
+        .map(e=>positions.get(e.from)).filter(Boolean);
+      let x,y;
+      if(graphDirection==='vertical'){
+        x=checkpointLaneX;
+        y=endpoints.length?Math.max(...endpoints.map(p=>p.y))+100:
+          105+i*250;
+        while(occupied.some(p=>Math.abs(p.x-x)<265&&Math.abs(p.y-y)<210))y+=240;
+      }else{
+        x=endpoints.length?Math.max(...endpoints.map(p=>p.x))+130:110+i*368;
+        y=checkpointLaneY;
+        while(occupied.some(p=>Math.abs(p.x-x)<280&&Math.abs(p.y-y)<200))x+=355;
+      }
+      const pos={x:Math.round(x),y:Math.round(y)};positions.set(m.id,pos);occupied.push(pos);
+    });
+    nodes.forEach(t=>{
+      const saved=t.graphPositions?.[graphDirection];
+      if(saved)Object.assign(positions.get(t.id),{x:saved.x,y:saved.y});
+    });
     return positions;
   }
   function descendants(id){
@@ -1219,37 +1328,93 @@ System testing | Sam | Testing | Assemble prototype`;
         ${subs.slice(0,3).map((c,i)=>`<g data-subtask="${svgEscape(c.id)}" class="graph-subtask"><rect x="12" y="${117+i*17}" width="223" height="15" rx="5" fill="${pal.border}" opacity=".4"/><text x="20" y="${129+i*17}" font-size="10" fill="${pal.text}">${completion(c)?'✓ ':'· '}${svgEscape(c.title.slice(0,31))}</text></g>`).join('')}
         ${subs.length>3?`<text x="216" y="174" text-anchor="end" font-size="10" fill="${pal.sub}">+${subs.length-3} more</text>`:''}`;
     }else if(graphSkin==='skill'){
-      body=`<rect x="4" y="5" width="240" height="166" rx="8" fill="${pal.active}" opacity=".10"/>
-        <path class="node-body" d="M20 4 H228 L244 20 V156 L228 174 H20 L4 158 V20 Z" fill="${pal.card}" stroke="${selected?pal.active:color}" stroke-width="${selected?3.3:2}" filter="url(#nodeShadow)"/>
-        <path d="M21 15 H227 M16 158 H231" stroke="${color}" stroke-width="1.5" opacity=".65"/>
-        <path d="M124 15 l11 12 -11 12 -11 -12 Z" fill="${color}" fill-opacity=".24" stroke="${color}"/>
-        <text x="124" y="31" text-anchor="middle" font-size="14" fill="${color}">${isMs?'✦':'◆'}</text>
-        ${title.map((line,i)=>`<text x="124" y="${58+i*18}" text-anchor="middle" font-size="13.3" font-weight="800" fill="${pal.text}">${svgEscape(line)}</text>`).join('')}
-        <rect x="36" y="93" width="176" height="24" rx="12" fill="${color}" fill-opacity=".16"/>
-        <text x="124" y="109" font-size="11" font-weight="750" text-anchor="middle" fill="${color}">${isMs?'MILESTONE':svgEscape(STATUS_LABELS[t.status])}</text>
-        <text x="124" y="135" font-size="10.8" text-anchor="middle" fill="${pal.sub}">${isMs?milestoneCount(t).done+'/'+milestoneCount(t).total+' tasks':subs.length?subDone+'/'+subs.length+' subtasks':svgEscape(t.assignee||'Unassigned')}</text>
-        ${subs.slice(0,3).map((c,i)=>`<g data-subtask="${svgEscape(c.id)}" class="graph-subtask"><circle cx="${93+i*30}" cy="153" r="8" fill="${completion(c)?color:pal.border}" stroke="${color}" stroke-width="1"/><text x="${93+i*30}" y="157" font-size="10" text-anchor="middle" fill="${pal.text}">${completion(c)?'✓':i+1}</text></g>`).join('')}`;
+      // An enchanted forest skill tree: asymmetric carved badges, leaves, runes
+      // and warm amber light; entirely distinct from the Flow cards.
+      const gold=isMs?'#fbd58f':'#b5dfb3', ink='#f1eadb', muted='#b4cdbb';
+      if(isMs){
+        const count=milestoneCount(t),finished=count.total>0&&count.done===count.total;
+        body=`<g filter="url(#skillAura)"><circle cx="124" cy="84" r="83" fill="${color}" opacity=".21"/></g>
+          <circle class="checkpoint-halo" cx="124" cy="84" r="82" stroke="${color}" stroke-width="2" stroke-dasharray="3 8" fill="none" opacity=".72"/>
+          <path class="node-body" d="M124 1 Q143 37 163 40 Q204 42 222 86 Q190 123 169 128 Q151 151 124 173 Q98 151 78 128 Q51 121 26 86 Q51 44 86 40 Q109 37 124 1Z" fill="url(#skillMilestoneCore)" stroke="${color}" stroke-width="2.8" filter="url(#skillDepth)"/>
+          <path d="M124 13 L135 58 L174 86 L135 111 L124 158 L113 111 L74 86 L113 58Z" fill="none" stroke="${gold}" stroke-opacity=".43" stroke-width="1.4"/>
+          <path d="M124 16 L129 75 L188 86 L129 97 L124 156 L119 97 L60 86 L119 75Z" fill="${gold}" opacity=".32"/>
+          <circle cx="124" cy="86" r="41" fill="#122b32" stroke="${gold}" stroke-width="1.4"/>
+          <text x="124" y="55" text-anchor="middle" font-size="20" fill="${gold}">✦</text>
+          ${title.map((line,i)=>`<text x="124" y="${82+i*15-(title.length===1?0:7)}" text-anchor="middle" font-size="${title.length>1?11.5:13}" font-weight="800" fill="${ink}">${svgEscape(line)}</text>`).join('')}
+          <text x="124" y="114" text-anchor="middle" fill="${gold}" font-size="10" font-weight="700">${count.done}/${count.total} COMPLETE</text>
+          ${finished?'<text class="milestone-sparkle" x="194" y="35" font-size="21" fill="#ffe6aa">✦</text>':''}`;
+      }else{
+        body=`<path d="M31 45 Q25 13 60 13 L187 13 Q219 13 216 45 L235 80 L215 127 Q220 162 187 162 L61 162 Q26 162 31 127 L12 80 Z" fill="${color}" fill-opacity=".15" filter="url(#skillAura)"/>
+          <path class="node-body" d="M31 33 Q33 14 58 14 L189 14 Q214 14 217 33 L238 86 L215 139 Q213 162 189 162 L58 162 Q35 162 32 139 L10 86Z" fill="url(#skillWood)" stroke="${selected?'#fff5c4':gold}" stroke-width="${selected?3.2:1.9}" filter="url(#skillDepth)"/>
+          <path d="M46 28 Q28 46 34 70 M201 28 Q220 45 214 68 M46 145 Q28 124 34 103 M201 145 Q220 127 214 103" stroke="${color}" stroke-width="2.5" stroke-linecap="round" fill="none" opacity=".75"/>
+          <path d="M12 86 C2 68 2 52 16 42 C26 56 29 71 12 86 M236 86 C246 68 246 52 232 42 C223 56 220 71 236 86" fill="${gold}" opacity=".65"/>
+          <path d="M124 19 l7 10 -7 11 -7 -11z" fill="${gold}"/>
+          <path d="M62 52 H186" stroke="${gold}" stroke-opacity=".38"/>
+          ${title.map((line,i)=>`<text x="124" y="${72+i*17-(title.length===1?0:7)}" text-anchor="middle" font-size="13.3" font-weight="800" fill="${ink}">${svgEscape(line)}</text>`).join('')}
+          <text x="124" y="107" text-anchor="middle" font-size="10.4" font-weight="750" fill="${gold}">${svgEscape(STATUS_LABELS[t.status])}</text>
+          <text x="124" y="126" text-anchor="middle" font-size="10" fill="${muted}">${subs.length?`${subDone}/${subs.length} subtasks`:svgEscape((t.assignee||'Unassigned').slice(0,23))}</text>
+          ${subs.slice(0,5).map((c,i)=>`<g data-subtask="${svgEscape(c.id)}" class="graph-subtask"><circle cx="${124+(i-(Math.min(subs.length,5)-1)/2)*19}" cy="146" r="6" fill="${completion(c)?'#c3f6b2':'#26433b'}" stroke="${gold}" stroke-width="1"/><title>${svgEscape(c.title)}</title></g>`).join('')}`;
+      }
     }else{
-      const gradient=isMs?'url(#milestoneGlow)':'url(#glassOrb)',r=isMs?75:69;
-      body=`<circle cx="124" cy="86" r="${r+10}" fill="${color}" opacity=".11" filter="url(#orbGlow)"/>
-        <circle class="node-body" cx="124" cy="86" r="${r}" fill="${gradient}" stroke="${color}" stroke-width="${isMs?4:2.1}" stroke-opacity=".80" filter="url(#nodeShadow)"/>
-        <ellipse cx="100" cy="43" rx="47" ry="14" fill="#fff" opacity=".20" transform="rotate(-22 100 43)"/>
-        ${isMs?`<circle cx="124" cy="86" r="68" fill="${color}" fill-opacity=".19"/><path d="M124 28 L134 69 L175 79 L134 89 L124 135 L114 89 L73 79 L114 69 Z" fill="${color}" fill-opacity=".44"/>`: ''}
-        ${title.map((line,i)=>`<text x="124" y="${77+i*19-(title.length===1?0:6)}" text-anchor="middle" font-size="${isMs?13.5:12.8}" font-weight="780" fill="${pal.text}">${svgEscape(line)}</text>`).join('')}
-        <text x="124" y="${title.length===1?100:113}" text-anchor="middle" font-size="10.5" fill="${color}">${isMs?'✦ MILESTONE':svgEscape(STATUS_LABELS[t.status])}</text>
-        ${subs.slice(0,5).map((c,i)=>{const angle=(i/(Math.min(5,subs.length)+1)+.05)*Math.PI,x=124+92*Math.cos(angle),y=86+92*Math.sin(angle);return `<g data-subtask="${svgEscape(c.id)}" class="graph-subtask"><circle cx="${x}" cy="${y}" r="10" fill="${completion(c)?color:pal.card}" stroke="${color}" stroke-width="1.5"/><title>${svgEscape(c.title)}</title></g>`;}).join('')}
-        ${subs.length?`<text x="124" y="174" text-anchor="middle" font-size="10" fill="${pal.sub}">${subDone}/${subs.length} steps</text>`:''}`;
+      // Celestial garden: iridescent crystalline orbs, aurora filaments and
+      // multi-layered gemstone checkpoints, with a star-field CSS backdrop.
+      const count=isMs?milestoneCount(t):null,finished=isMs&&count.total>0&&count.done===count.total;
+      const vivid=isMs?'#ffe2ff':'#eff9ff';
+      if(isMs){
+        body=`<circle class="checkpoint-halo" cx="124" cy="86" r="84" stroke="${color}" stroke-width="2.7" stroke-dasharray="2 11" fill="none" opacity=".88"/>
+          <circle cx="124" cy="86" r="81" fill="${color}" opacity=".30" filter="url(#celestialBloom)"/>
+          <path class="node-body" d="M124 2 L151 30 L192 29 L195 70 L236 86 L195 104 L192 145 L151 144 L124 174 L97 144 L56 145 L53 104 L12 86 L53 70 L56 29 L97 30Z" fill="url(#crystalHeart)" stroke="${color}" stroke-width="2" filter="url(#cosmicShadow)"/>
+          <circle cx="124" cy="86" r="62" fill="#23183c" fill-opacity=".78" stroke="#ffffff" stroke-opacity=".54" stroke-width="1.4"/>
+          <circle cx="124" cy="86" r="72" fill="none" stroke="${color}" stroke-opacity=".65" stroke-width="1.7" stroke-dasharray="7 6"/>
+          <path d="M124 18 L136 72 L190 86 L136 98 L124 152 L112 98 L58 86 L112 72Z" fill="${color}" opacity=".21"/>
+          <path d="M124 22 L130 78 L188 86 L130 94 L124 150 L118 94 L60 86 L118 78Z" fill="${color}" opacity=".5"/>
+          <text x="124" y="53" text-anchor="middle" font-size="20" fill="#fff0f9">✦</text>
+          ${title.map((line,i)=>`<text x="124" y="${84+i*15-(title.length===1?0:7)}" text-anchor="middle" font-size="12.5" font-weight="850" fill="${vivid}">${svgEscape(line)}</text>`).join('')}
+          <text x="124" y="113" text-anchor="middle" font-size="10.2" font-weight="800" fill="#fee1ff">${count.done}/${count.total} · MILESTONE</text>
+          ${finished?'<text class="milestone-sparkle" x="197" y="40" font-size="22" fill="#ffffff">✧</text>':''}`;
+      }else{
+        body=`<circle cx="124" cy="86" r="80" fill="${color}" opacity=".24" filter="url(#celestialBloom)"/>
+          <circle class="node-body" cx="124" cy="86" r="70" fill="url(#cosmicOrb)" stroke="${selected?'#ffffff':color}" stroke-width="${selected?3.8:2}" filter="url(#cosmicShadow)"/>
+          <ellipse cx="104" cy="49" rx="52" ry="20" fill="url(#cosmicShine)" transform="rotate(-25 104 49)"/>
+          <path d="M57 100 Q87 166 158 145 Q198 125 183 75" fill="none" stroke="${color}" stroke-width="2" stroke-opacity=".72"/>
+          <path d="M72 44 Q120 8 170 38" fill="none" stroke="#ffffff" stroke-opacity=".62" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="171" cy="40" r="3.5" fill="#ffffff"/><circle cx="63" cy="106" r="2.3" fill="${color}"/>
+          ${title.map((line,i)=>`<text x="124" y="${83+i*17-(title.length===1?0:8)}" text-anchor="middle" font-size="12.5" font-weight="820" fill="${vivid}">${svgEscape(line)}</text>`).join('')}
+          <text x="124" y="${title.length===1?105:114}" text-anchor="middle" font-size="10.5" fill="#c6edff">${svgEscape(STATUS_LABELS[t.status])}</text>
+          ${subs.slice(0,5).map((c,i)=>{const angle=(i/(Math.min(5,subs.length)+1)+.08)*Math.PI,x=124+87*Math.cos(angle),y=86+87*Math.sin(angle);return `<g data-subtask="${svgEscape(c.id)}" class="graph-subtask"><circle cx="${x}" cy="${y}" r="8.5" fill="${completion(c)?'#adfff2':'#1a3152'}" stroke="#bdfeff" stroke-width="1.6"/><title>${svgEscape(c.title)}</title></g>`;}).join('')}
+          ${subs.length?`<text x="124" y="176" text-anchor="middle" font-size="10" font-weight="700" fill="#c1e6ff">${subDone}/${subs.length} subtasks</text>`:''}`;
+      }
     }
     const vert=graphDirection==='vertical',cx=vert?NODE_W/2:0,cy=vert?0:NODE_H/2,ox=vert?NODE_W/2:NODE_W,oy=vert?NODE_H:NODE_H/2;
     const ports=isMs?'':`<circle class="graph-port" data-port="in" cx="${cx}" cy="${cy}" r="8" stroke="${pal.border}" stroke-width="2" fill="${pal.card}"/><circle class="graph-port" data-port="out" cx="${ox}" cy="${oy}" r="9" stroke="${color}" stroke-width="2.5" fill="${pal.card}"/><circle cx="${ox}" cy="${oy}" r="3" fill="${color}" pointer-events="none"/>`;
-    return `<g class="graph-node ${isMs?'milestone-node':''}" role="button" tabindex="0" data-node="${svgEscape(t.id)}" transform="translate(${p.x} ${p.y})" opacity="${faded?.32:1}">${body}${ports}<title>${svgEscape(t.title)}${isMs?' — milestone':' — '+taskStateLabel(t)}. Drag to reposition.</title></g>`;
+    return `<g class="graph-node ${isMs?'milestone-node':''} ${isMs&&milestoneCount(t).total>0&&milestoneCount(t).done===milestoneCount(t).total?'graph-milestone-complete':''}" role="button" tabindex="0" data-node="${svgEscape(t.id)}" transform="translate(${p.x} ${p.y})" opacity="${faded?.32:1}">${body}${ports}<title>${svgEscape(t.title)}${isMs?' — milestone':' — '+taskStateLabel(t)}. Drag to reposition.</title></g>`;
   }
   function edgeCoordinates(from,to,positions=graphPositions){
     const a=positions.get(from),b=positions.get(to);if(!a||!b)return '';
-    if(graphDirection==='vertical'){const x1=a.x+NODE_W/2,y1=a.y+NODE_H,x2=b.x+NODE_W/2,y2=b.y;const bend=Math.max(44,Math.abs(y2-y1)*.45);return `M ${x1} ${y1} C ${x1} ${y1+bend},${x2} ${y2-bend},${x2} ${y2-8}`;}
-    const x1=a.x+NODE_W,y1=a.y+NODE_H/2,x2=b.x,y2=b.y+NODE_H/2;const bend=Math.max(55,Math.abs(x2-x1)*.43);return `M ${x1} ${y1} C ${x1+bend} ${y1},${x2-bend} ${y2},${x2-8} ${y2}`;
+    if(graphDirection==='vertical'){
+      const x1=a.x+NODE_W/2,y1=a.y+NODE_H,x2=b.x+NODE_W/2,y2=b.y;
+      const bend=Math.max(44,Math.abs(y2-y1)*.45);
+      return `M ${x1} ${y1} C ${x1} ${y1+bend},${x2} ${y2-bend},${x2} ${y2-8}`;
+    }
+    const x1=a.x+NODE_W,y1=a.y+NODE_H/2,x2=b.x,y2=b.y+NODE_H/2;
+    const bend=Math.max(55,Math.abs(x2-x1)*.43);
+    return `M ${x1} ${y1} C ${x1+bend} ${y1},${x2-bend} ${y2},${x2-8} ${y2}`;
   }
-  function updateGraphGeometry(){el('graphStage').querySelectorAll('[data-edge-from]').forEach(edge=>edge.setAttribute('d',edgeCoordinates(edge.dataset.edgeFrom,edge.dataset.edgeTo)));}
+  function checkpointCoordinates(from,to,positions=graphPositions){
+    const a=positions.get(from),b=positions.get(to);if(!a||!b)return '';
+    if(graphDirection==='vertical'){
+      const x1=a.x+NODE_W/2,y1=a.y+NODE_H+9,x2=b.x+NODE_W/2,y2=b.y-5;
+      const bend=Math.max(46,Math.abs(y2-y1)*.36);
+      return `M ${x1} ${y1} C ${x1} ${y1+bend},${x2} ${y2-bend},${x2} ${y2}`;
+    }
+    const x1=a.x+NODE_W+9,y1=a.y+NODE_H/2,x2=b.x-5,y2=b.y+NODE_H/2;
+    const bend=Math.max(46,Math.abs(x2-x1)*.36);
+    return `M ${x1} ${y1} C ${x1+bend} ${y1},${x2-bend} ${y2},${x2} ${y2}`;
+  }
+  function updateGraphGeometry(){
+    el('graphStage').querySelectorAll('[data-edge-from]').forEach(edge=>edge.setAttribute('d',
+      (edge.dataset.edgeKind==='milestone'?checkpointCoordinates:edgeCoordinates)(edge.dataset.edgeFrom,edge.dataset.edgeTo)));
+  }
   function renderGraph(fit=false){
     const stage=el('graphStage'),{nodes,edges}=graphItems();
     if(!nodes.length){graphPositions=new Map();stage.innerHTML='';el('graphEmpty').classList.remove('hidden');el('graphEmpty').innerHTML=emptyPanel('Start your dependency tree','Right-click the canvas to create tasks and checkpoints.');return;}
@@ -1257,13 +1422,30 @@ System testing | Sam | Testing | Assemble prototype`;
     const coords=[...graphPositions.values()];const minX=Math.min(...coords.map(p=>p.x))-70,minY=Math.min(...coords.map(p=>p.y))-70;
     graphBounds={minX,minY,width:Math.max(...coords.map(p=>p.x+NODE_W))+70-minX,height:Math.max(...coords.map(p=>p.y+NODE_H))+70-minY};
     const pal=graphPalette(),down=descendants(highlightedId),related=new Set([highlightedId,...down]);
-    const paths=edges.map(({from,to})=>{const d=edgeCoordinates(from,to),active=highlightedId&&(from===highlightedId||down.has(from))&&down.has(to);
-      return `<path class="graph-edge" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke="${active?pal.active:graphSkin==='skill'?'#c5a66a':pal.line}" stroke-width="${graphSkin==='skill'?3.6:graphSkin==='orbs'?2.2:1.8}" opacity="${highlightedId&&!active?.25:1}" ${graphSkin==='skill'?'stroke-dasharray="2 7"':''} marker-end="url(#${active?'arrowActive':'arrowDefault'})"/><path class="graph-edge-hit" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke-width="16"/>`;}).join('');
+    const paths=edges.map(({from,to,kind,color})=>{
+      const checkpoint=kind==='milestone';
+      const d=checkpoint?checkpointCoordinates(from,to):edgeCoordinates(from,to);
+      const active=highlightedId&&(from===highlightedId||down.has(from))&&down.has(to);
+      if(checkpoint){
+        const c=/^#[0-9a-f]{6}$/i.test(color)?color:'#d99aff';
+        return `<path class="graph-edge-checkpoint" data-edge-kind="milestone" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke="${c}" stroke-width="10" opacity=".25" filter="url(#celestialBloom)" pointer-events="none"/>
+          <path class="graph-edge-checkpoint" data-edge-kind="milestone" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke="${c}" stroke-width="3.2" stroke-dasharray="3 11" stroke-linecap="round" opacity=".90" pointer-events="none"/>
+          <path class="graph-edge-hit" data-edge-kind="milestone" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke-width="15"/>`;
+      }
+      return `<path class="graph-edge" data-edge-kind="task" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke="${active?pal.active:graphSkin==='skill'?'#a6d8a8':graphSkin==='orbs'?'#8dbce1':pal.line}" stroke-width="${graphSkin==='skill'?3.4:graphSkin==='orbs'?2.4:1.8}" opacity="${highlightedId&&!active?.25:1}" ${graphSkin==='skill'?'stroke-linecap="round"':''} marker-end="url(#${active?'arrowActive':'arrowDefault'})"/>
+          <path class="graph-edge-hit" data-edge-kind="task" data-edge-from="${svgEscape(from)}" data-edge-to="${svgEscape(to)}" d="${d}" fill="none" stroke-width="16"/>`;
+    }).join('');
     stage.innerHTML=`<defs>
       <filter id="nodeShadow" x="-45%" y="-45%" width="190%" height="200%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#14263c" flood-opacity=".20"/></filter>
-      <filter id="orbGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter>
-      <radialGradient id="glassOrb" cx=".30" cy=".23" r=".9"><stop offset="0" stop-color="#ffffff" stop-opacity=".62"/><stop offset=".38" stop-color="${pal.card}" stop-opacity=".82"/><stop offset="1" stop-color="${pal.active}" stop-opacity=".17"/></radialGradient>
-      <radialGradient id="milestoneGlow" cx=".3" cy=".25" r=".88"><stop offset="0" stop-color="#ffffff" stop-opacity=".8"/><stop offset=".43" stop-color="#dfb8ff" stop-opacity=".72"/><stop offset="1" stop-color="#8364d5" stop-opacity=".46"/></radialGradient>
+      <filter id="skillDepth" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="9" stdDeviation="7" flood-color="#030e0b" flood-opacity=".85"/></filter>
+      <filter id="skillAura" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="10"/></filter>
+      <filter id="celestialBloom" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="8"/></filter>
+      <filter id="cosmicShadow" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#08031e" flood-opacity=".92"/></filter>
+      <linearGradient id="skillWood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#295449"/><stop offset=".47" stop-color="#14342e"/><stop offset="1" stop-color="#0c2829"/></linearGradient>
+      <radialGradient id="skillMilestoneCore" cx=".4" cy=".26" r=".82"><stop offset="0" stop-color="#637d69"/><stop offset=".4" stop-color="#31574b"/><stop offset="1" stop-color="#091e24"/></radialGradient>
+      <radialGradient id="cosmicOrb" cx=".24" cy=".18" r=".95"><stop offset="0" stop-color="#b8f1ff" stop-opacity=".95"/><stop offset=".2" stop-color="#6588c9" stop-opacity=".7"/><stop offset=".48" stop-color="#334d9b" stop-opacity=".84"/><stop offset=".85" stop-color="#171436" stop-opacity=".97"/><stop offset="1" stop-color="#050b24"/></radialGradient>
+      <radialGradient id="cosmicShine" cx=".4" cy=".1" r=".9"><stop offset="0" stop-color="#fff" stop-opacity=".84"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      <radialGradient id="crystalHeart" cx=".31" cy=".23" r=".9"><stop offset="0" stop-color="#fff2ff"/><stop offset=".2" stop-color="#d987ec"/><stop offset=".53" stop-color="#8247c1"/><stop offset="1" stop-color="#281353"/></radialGradient>
       </defs>${paths}${nodes.map(t=>graphNode(t,graphPositions.get(t.id),related)).join('')}`;
     el('arrowDefault').querySelector('path').setAttribute('fill',pal.line);el('arrowActive').querySelector('path').setAttribute('fill',pal.active);
     if(fit)fitGraph();else applyTransform();
@@ -1276,7 +1458,7 @@ System testing | Sam | Testing | Assemble prototype`;
   }
   function focusStart(){
     const {nodes,edges}=graphItems();if(!nodes.length)return;
-    const roots=nodes.filter(t=>!edges.some(e=>e.to===t.id)).map(t=>graphPositions.get(t.id)).filter(Boolean);
+    const roots=nodes.filter(t=>!t.isMilestone&&!edges.some(e=>e.kind==='task'&&e.to===t.id)).map(t=>graphPositions.get(t.id)).filter(Boolean);
     if(!roots.length)return fitGraph();const r=el('graphSvg').getBoundingClientRect();if(!r.width||!r.height)return;
     const minX=Math.min(...roots.map(p=>p.x)),maxX=Math.max(...roots.map(p=>p.x+NODE_W)),minY=Math.min(...roots.map(p=>p.y));
     const scale=Math.min(1.1,Math.max(.40,(r.width-110)/(maxX-minX+80)));
@@ -1292,7 +1474,7 @@ System testing | Sam | Testing | Assemble prototype`;
   function graphContext(clientX,clientY,target){
     const area=el('graphArea'),menu=el('graphContext'),r=area.getBoundingClientRect(),node=target.closest('.graph-node'),edge=target.closest('.graph-edge-hit'),point=graphPoint(clientX,clientY);
     contextData={nodeId:node?.dataset.node||null,edgeFrom:edge?.dataset.edgeFrom||null,edgeTo:edge?.dataset.edgeTo||null,position:{x:Math.round(point.x-NODE_W/2),y:Math.round(point.y-NODE_H/2)}};
-    if(edge){menu.innerHTML=edge.dataset.edgeTo.startsWith('ms:')?'<div class="small-note" style="padding:8px">Assign milestones from task details.</div>':'<button data-graph-action="unlink">Remove dependency</button>';}
+    if(edge){menu.innerHTML=edge.dataset.edgeTo.startsWith('ms:')?'<div class="small-note" style="padding:8px">Checkpoint link · tracked milestone assignment. Edit the task to change it.</div>':'<button data-graph-action="unlink">Remove dependency</button>';}
     else if(node){menu.innerHTML=node.dataset.node.startsWith('ms:')?'<button data-graph-action="edit-ms">Edit milestone</button>':'<button data-graph-action="edit">Edit task</button><button data-graph-action="subtask">Add subtask</button><button data-graph-action="child">New dependent task</button>'+projectSettings.statuses.map(st=>`<button data-graph-status="${html(st.id)}">Move to ${html(st.label)}</button>`).join('')+'<div class="separator"></div><button data-graph-action="trash">Move to Trash</button>';}
     else menu.innerHTML='<button data-graph-action="new">+ New task here</button><button data-graph-action="new-ms">✦ New milestone</button><button data-graph-action="bulk">Bulk paste</button><div class="separator"></div><button data-graph-action="arrange">Auto arrange</button>';
     menu.classList.remove('hidden');const x=Math.max(6,Math.min(clientX-r.left,area.clientWidth-menu.offsetWidth-6)),y=Math.max(6,Math.min(clientY-r.top,area.clientHeight-menu.offsetHeight-6));menu.style.left=x+'px';menu.style.top=y+'px';
@@ -1596,14 +1778,25 @@ System testing | Sam | Testing | Assemble prototype`;
   el('fileInput').addEventListener('change',e=>importData(e.target.files[0]));
   el('sampleBtn').addEventListener('click',sampleProject);
   el('clearBtn').addEventListener('click',clearAll);
-  el('boardContent').addEventListener('input',e=>{const c=e.target.dataset.filterColumn,k=e.target.dataset.filterKey;if(!c||!k)return;(boardPrefs[c]??={filter:'all',sort:'oldest',search:''})[k]=e.target.value;if(k==='search'){
-      const pos=e.target.selectionStart??e.target.value.length;
-      renderBoard();
-      const input=[...el('boardContent').querySelectorAll('input[data-filter-key="search"]')].find(n=>n.dataset.filterColumn===c);
-      if(input){input.focus();input.setSelectionRange(pos,pos);}
-    }else renderBoard();});
+  // Preserve the actual focused input while filtering cards; rebuilding the full
+  // board on each keystroke previously caused focusout and interrupted typing.
+  function updateColumnSearch(statusId){
+    const existing=[...el('boardContent').querySelectorAll('.board-column')].find(c=>c.dataset.status===statusId);
+    if(!existing)return;
+    const scratch=document.createElement('div');renderBoard(scratch);
+    const next=[...scratch.querySelectorAll('.board-column')].find(c=>c.dataset.status===statusId);
+    if(!next)return;
+    existing.querySelector('.task-list').innerHTML=next.querySelector('.task-list').innerHTML;
+    existing.querySelector('.count').textContent=next.querySelector('.count').textContent;
+  }
+  el('boardContent').addEventListener('input',e=>{
+    const c=e.target.dataset.filterColumn,k=e.target.dataset.filterKey;
+    if(!c||k!=='search')return;
+    (boardPrefs[c]??={filter:'all',sort:'oldest',search:'',assignee:'all'}).search=e.target.value;
+    updateColumnSearch(c);
+  });
   el('boardContent').addEventListener('change',e=>{const c=e.target.dataset.filterColumn,k=e.target.dataset.filterKey;if(!c||!k)return;(boardPrefs[c]??={filter:'all',sort:'oldest',search:''})[k]=e.target.value;renderBoard();});
-  el('boardContent').addEventListener('focusout',e=>{if(e.target.dataset.filterKey==='search')renderBoard();});
+  el('boardContent').addEventListener('focusout',e=>{/* Search is already updated without replacing the input. */});
   el('boardContent').addEventListener('click',e=>{
     if(e.target.closest('[data-create]')){openDrawer();return;}
     if(e.target.closest('[data-bulk]')){openBulk();return;}
@@ -1752,7 +1945,7 @@ System testing | Sam | Testing | Assemble prototype`;
   el('fitBtnTop').addEventListener('click',fitGraph);
   el('autoLayoutBtn').addEventListener('click',resetLayout);
   el('focusStartBtn').addEventListener('click',focusStart);
-  el('graphDirection').addEventListener('change',e=>{graphDirection=e.target.value;applyAppearance();});
+  el('graphDirection').addEventListener('change',e=>{graphDirection=e.target.value;applyAppearance();requestAnimationFrame(()=>renderGraph(true));});
   el('appearanceBtn').addEventListener('click',()=>{
     const panel=el('appearancePanel'),open=panel.classList.toggle('hidden')===false;
     el('appearanceBtn').setAttribute('aria-expanded',String(open));
